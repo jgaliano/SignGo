@@ -1,0 +1,82 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign</title>
+    <link rel="stylesheet" href="/static/styles/signbox/sign.css">
+</head>
+    <body>
+        <div class="caja">
+            <div class="box_1_responsive">
+                    <div class="box_1">
+                        <h1>{{ username }}</h1>
+                    </div>
+                </div>
+                <div class="statusBox">
+                    <p id="statusDoc">{{ estado }}</p>
+                </div>
+                
+                <div class="container">
+                    <div class="headtext">
+                        <h1>Documentos a Firmar</h1>
+                    </div>
+                    <br>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            Documentos
+                        </div>
+                        <div class="card-body">
+                            <table id="datatablesSimple" class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre Documento</th>
+                                        <th>Tamaño Documento</th>
+                                        <th>Archivo</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    {% for data in documentos %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ data.0 }}</td>
+                                        <td>{{ data.1 }}</td>
+                                        <td>
+                                            <button class="btn btn-success" onclick="mostrar('{{data.0}}')" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">DemoFirma</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="contenedor" class="modal-body" style="height: 80vh;"></div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+        <script src="/static/js/signbox/sign.js"></script>
+    </body>
+</html>
+{% endblock %}

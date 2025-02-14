@@ -1,0 +1,97 @@
+{% extends 'app_base.html' %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<script></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista busqueda operador</title>
+    <link rel="stylesheet" href="/static/styles/4identity/4identity_done.css">
+</head>
+<body>
+    <div class="caja">
+        <div class="box_1_responsive">
+                <div class="box_1">
+                    <h1>{{ username }}</h1>
+                </div>
+            </div>
+            <div class="statusBox">
+                <p id="statusDoc">{{ estado}}</p>
+            </div>
+            
+            <div class="container">
+                <br>
+                <div class="done">
+                    <img src="/media/4identity/pngwing.com.png" alt="">
+                    <p class="p_done">Documentos Firmados Exitosamente</p>
+                </div>
+                <br>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-table me-1"></i>
+                        Documentos Firmados
+                    </div>
+                    <div class="card-body">
+                        <table id="datatablesSimple" class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre Documento</th>
+                                    <th>Tamaño Documento</th>
+                                    <th>Archivo</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                </tr>
+                            </tfoot>
+                            <tbody>
+                                {% for data in resultados %}
+                                <tr>
+                                    <td>{{data.0}}</td>
+                                    <td>{{data.1}}</td>
+                                    <td>{{data.2}}</td>
+                                    <td>
+                                        <button class="btn btn-success" onclick="mostrar('{{data.1}}')" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                </div>
+            </div><br>           
+    </div>
+    <!-- <div class="overlay" id="overlay">
+        <div class="modal" id="modal">
+            <div id="contenedor"></div>
+          <div class="login">
+              <span class="btn btn-secondary" onclick="closeModal()">Cerrar</span>
+          </div>
+        </div>
+    </div> -->
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">DemoFirma</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="contenedor" class="modal-body" style="height: 80vh;"></div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+          </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_4identity_server_sign }}"></script> 
+    <script src="/static/js/4identity/4identity_done_modal.js"></script>
+    <br>
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,414 @@
+{% extends 'dashboard/index.html' %}
+{% load custom_filters %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle Licencia</title>
+    <style>
+        .encabezado {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .contenedor {
+            padding: 4%;
+        }
+        #btn_enviar {
+            width: 200px;
+        }
+        .btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        div[name="mensaje"] {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: auto;
+        }
+        .tab-button {
+            cursor: pointer;
+            padding: 10px 20px;
+            border: none;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .tab-button.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+                /* OVERLAY */
+                .overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: none;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                }
+        
+                .spinner-border {
+                    width: 3rem;
+                    height: 3rem;
+                    color: #ffffff;
+                }
+                /* OVERLAY */
+
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY -->
+    <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+        <div class="d-flex flex-column justify-content-center align-items-center h-100">
+            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;"></div>
+            <span class="mt-2 text-light">CARGANDO...</span>
+        </div>
+    </div>
+    <!-- OVERLAY -->
+
+    <div class="container mt-5">
+        {% if messages %}
+            <div>
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <h2 class="display-5 mb-5 text-center">Detalle Licencia</h2>
+
+        <!-- Fila de opciones -->
+        <div class="d-flex justify-content-center mb-4">
+            <button class="tab-button active" onclick="showTab('editar_licencia')">Editar Licencia</button>
+            <button class="tab-button" onclick="showTab('usuarios_licencia')">Usuarios | Empresa Asociados</button>
+            <button class="tab-button" onclick="showTab('compra_extra')">Compra Extraordinaria</button>
+            <button class="tab-button" onclick="showTab('renovar_licencia')">Renovar Licencia</button>
+            <button class="tab-button" onclick="showTab('historial_renovaciones')">Historial Licencias</button>
+        </div>
+
+        <div id="renovar_licencia" class="tab-content">
+            <form action="{% url 'renovar_licencia' token_rlc %}" id="form-renovar" method="post" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-6">
+                    <label for="new_fecha_inicio" class="form-label">Nueva Fecha Emisión:</label>
+                    <input type="date" id="new_fecha_inicio" name="new_fecha_inicio" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="new_fecha_fin" class="form-label">Nueva Fecha Vencimiento:</label>
+                    <input type="date" id="new_fecha_fin" name="new_fecha_fin" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="new_cantidad_creditos" class="form-label">Nuevo Bolsón Créditos:</label>
+                    <input type="number" id="new_cantidad_creditos" name="new_cantidad_creditos" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="new_costo_licencia" class="form-label">Nuevo Precio Licencia (Q):</label>
+                    <input type="number" id="new_costo_licencia" name="new_costo_licencia" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="new_costo_creditos" class="form-label">Nuevo Precio Creditos (Q):</label>
+                    <input type="number" id="new_costo_creditos" name="new_costo_creditos" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="id_licencia" class="form-label"></label>
+                    <input type="hidden" id="id_licencia" name="id_licencia" class="form-control">
+                </div>
+                <hr>
+                <div class="d-flex justify-content-center" style="gap: 10px;">
+                    <button for="form-renovar" type="submit" class="btn btn-primary validateButton">Aplicar Renovación</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="compra_extra" class="tab-content">
+            <form action="{% url 'compra_extra' token_lc %}" id="form-renovar" method="post" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-6">
+                    <label for="extra_cantidad_creditos" class="form-label">Cantidad Creditos</label>
+                    <input type="number" id="extra_cantidad_creditos" name="extra_cantidad_creditos" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="extra_precio_creditos" class="form-label">Precio Creditos</label>
+                    <input type="number" id="extra_precio_creditos" name="extra_precio_creditos" required class="form-control">
+                </div>
+                <hr>
+                <div class="d-flex justify-content-center" style="gap: 10px;">
+                    <button for="form-renovar" type="submit" class="btn btn-primary validateButton">Aplicar Compra Extraordinaria</button>
+                </div>
+            </form>
+
+            <hr>
+
+            <div id="resultados_compra">
+                <section class="table_outer">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-12">
+                                <div class="card border-0 shadow">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover mb-0 ">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Cantidad Creditos</th>
+                                                        <th>Precio Creditos</th>
+                                                        <th>Fecha Compra</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for renovacion in find_compras_extra %}
+                                                        <tr>
+                                                            <td>{{ forloop.counter }}</td>
+                                                            <td>{{ renovacion.cantidad_creditos }}</td>
+                                                            <td>Q{{ renovacion.precio_creditos|replace_comma }}</td>
+                                                            <td>{{ renovacion.fecha_compra }}</td>
+                                                        </tr>
+                                                    {% empty %}
+                                                        <tr>
+                                                            <td colspan="4" class="text-center">No hay compras extraordinarias de esta licencia.</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+
+        <div id="historial_renovaciones" class="tab-content">
+            <div id="resultados">
+                <section class="table_outer">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-12">
+                                <div class="card border-0 shadow">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover mb-0 ">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Fecha Renovación</th>
+                                                        <th>Fecha Emisión</th>
+                                                        <th>Fecha Fin</th>
+                                                        <th>Costo Licencia</th>
+                                                        <th>Costo Creditos</th>
+                                                        <th>Cantidad Creditos</th>
+                                                        <!-- <th>ACCIÓN</th> -->
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for renovacion in renovaciones %}
+                                                        <tr>
+                                                            <td>{{ forloop.counter }}</td>
+                                                            <td>{{ renovacion.fecha_renovacion }}</td>
+                                                            <td>{{ renovacion.fecha_inicio|date:'Y-m-d' }}</td>
+                                                            <td>{{ renovacion.fecha_fin|date:'Y-m-d' }}</td>
+                                                            <td>{{ renovacion.costo_tipo|replace_comma }}</td>
+                                                            <td>{{ renovacion.costo_creditos|replace_comma }}</td>
+                                                            <td>{{ renovacion.cantidad_creditos }}</td>
+                                                            <!-- <td>
+                                                                <a href="/users/editar/{{ renovacion.TokenAuth }}" class="btn btn-primary btn-sm px-2">
+                                                                    <i class="fa-solid fa-eye">
+                                                                        <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                                    </i>
+                                                                </a>
+                                                            </td> -->
+                                                        </tr>
+                                                    {% empty %}
+                                                        <tr>
+                                                            <td colspan="7" class="text-center">No hay renovaciónes de esta licencia.</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Sección Editar Licencia -->
+        <div id="editar_licencia" class="tab-content active">
+
+            <form action="{% url 'licencias_editar' token_lc %}" method="post" class="row g-3" id="formulario">
+                {% csrf_token %}
+                <div class="col-md-6">
+                    <label for="empresa_usuario" class="form-label">Empresa/Usuario:</label>
+                    <input type="text" id="empresa_usuario" name="empresa_usuario" disabled value="{% if licencia.empresa %}{{ licencia.empresa.Nombre }}{% else %}{{ licencia.usuario.Nombres }}{% endif %}" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="fecha_inicio" class="form-label">Fecha Emisión:</label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ licencia.fecha_inicio|date:'Y-m-d' }}" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="fecha_fin" class="form-label">Fecha Vencimiento:</label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" value="{{ licencia.fecha_fin|date:'Y-m-d' }}" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="tipo" class="form-label">Tipo Licencia:</label>
+                    <select id="tipo" name="tipo" class="form-select">
+                        <option value="Firma Agil" {% if licencia.tipo == "Firma Agil" %}selected{% endif %}>Firma Ágil</option>
+                        <option value="FF_Signbox" {% if licencia.tipo == "FF_Signbox" %}selected{% endif %}>Flujo Firma Signbox</option>
+                        <option value="FF_Oneshot" {% if licencia.tipo == "FF_Oneshot" %}selected{% endif %}>Flujo Firma Oneshot</option>
+                        <option value="Genera Docs" {% if licencia.tipo == "Genera Docs" %}selected{% endif %}>Genera Docs</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="activa" class="form-label">Estado Licencia:</label>
+                    <select id="activa" name="estado" class="form-select">
+                        <option value="Activa" {% if licencia.activa == "Activa" %}selected{% endif %}>Activa</option>
+                        <option value="Expirada" {% if licencia.activa == "Expirada" %}selected{% endif %}>Expirada</option>
+                        <option value="Inactiva" {% if licencia.activa == "Inactiva" %}selected{% endif %}>Inactiva</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="modalidad" class="form-label">Modalidad Licencia:</label>
+                    <select id="modalidad" name="modalidad" class="form-select">
+                        <option value="Por Fecha" {% if licencia.modalidad == "Por Fecha"  %}selected{% endif %}>Por Fecha</option>
+                        <option value="Por Consumo" {% if licencia.modalidad == "Por Consumo" %}selected{% endif %}>Por Consumo</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="usuario_billing" class="form-label">Usuario Billing:</label>
+                    <input type="text" id="usuario_billing" name="usuario_billing" value="{{ licencia.usuario_billing }}" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="contraseña_billint" class="form-label">Contraseña Billing</label>
+                    <input type="password" id="contraseña_billint" name="contraseña_billint" value="{{ licencia.contrasena_billing }}" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="cantidad_creditos" class="form-label">Créditos:</label>
+                    <input type="number" id="cantidad_creditos" name="cantidad_creditos" value="{{ licencia.cantidad_creditos }}" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="costo_tipo" class="form-label">Precio Licencia <strong>Q{{ licencia.costo_tipo|replace_comma }}:</strong></label>
+                    <input type="number" id="costo_tipo" name="costo_tipo" value="" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="costo_creditos" class="form-label">Precio Creditos <strong>Q{{ licencia.costo_creditos|replace_comma }}:</strong></label>
+                    <input type="number" id="costo_creditos" name="costo_creditos" value="" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="modalidad" class="form-label">Ambiente de Licencia:</label>
+                    <select id="modalidad" name="env_licencia" class="form-select">
+                        <option value="sandbox" {% if licencia.env == "sandbox"  %}selected{% endif %}>Sandbox</option>
+                        <option value="prod" {% if licencia.env == "prod" %}selected{% endif %}>Producción</option>
+                    </select>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-center" style="gap: 10px;">
+                    <button for="formulario" type="submit" id="btn_enviar" class="btn btn-primary validateButton">Guardar Cambios</button>
+                    <button type="button" onclick="regresar()" id="btn_regresar" class="btn btn-secondary">Regresar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sección Detalles de Licencia -->
+        <div id="usuarios_licencia" class="tab-content">
+            <div id="resultados">
+                <section class="table_outer">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-12">
+                                <div class="card border-0 shadow">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover mb-0 ">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Empresa | Usuario</th>
+                                                        <th>Email</th>
+                                                        <th>Acción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>1</td>
+                                                        <td>{% if empresa_or_user == "user" %}{{ relacion.Nombres }} {{ relacion.Apellidos }}{% else %}{{ relacion.Nombre }}{% endif %}</td>
+                                                        <td>{% if empresa_or_user == "user" %}{{ relacion.Email }}{% else %}{{ relacion.EmailContacto }}{% endif %}</td>
+                                                        <td>
+                                                            <a {% if empresa_or_user == "user" %}href="/users/editar/{{ relacion.Token }}"{% else %}href="/empresas/editar/{{ relacion.Token }}"{% endif %}class="btn btn-primary btn-sm px-2">
+                                                                <i class="fa-solid fa-eye">
+                                                                    <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                                </i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        function regresar() {
+            window.history.back();
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+                        // OVERLAY
+                        document.addEventListener("DOMContentLoaded", () => {
+                            if (sessionStorage.getItem("showOverlay") === "true") {
+                                document.getElementById("overlay").classList.add("d-none"); // Oculta el overlay
+                                sessionStorage.removeItem("showOverlay"); // Limpia el estado
+                            }
+                        });
+                
+                        document.querySelectorAll(".validateButton").forEach(button => {
+                            button.addEventListener("click", function() {
+                                document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                                sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+                            });
+                        });
+                        // OVERLAY
+
+    </script>
+</body>
+</html>
+{% endblock %}

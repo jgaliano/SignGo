@@ -1,0 +1,9 @@
+h1{
+    font-family: system-ui;
+}
+
+.demo-contenedor-div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}

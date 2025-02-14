@@ -1,0 +1,220 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Licencias</title>
+    <style>
+        body {
+            background: #ededed;
+        }
+        
+        .table_outer {
+            padding: 10px 0;
+        }
+        table {
+            border-collapse: collapse; /* Elimina el espacio entre bordes de celdas */
+            width: 100%; /* Asegura que la tabla no se expanda innecesariamente */
+        }
+        table td,
+        table th {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            font-size: 13px;
+            padding: 4px 8px;
+        }
+        
+        .card {
+            border-radius: .5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <!-- Sección superior -->
+        <br>
+        {% if messages %}
+            <div>
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Gestión de Licencias</h2>
+            <a class="btn btn-primary" href="/licencias/crear">Crear Licencia</a>
+        </div>
+
+        <!-- Filtros de búsqueda -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Filtros de Búsqueda</h5>
+                <form id="filtros-form" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="nombreEmpresa" class="form-label">Nombre de Empresa</label>
+                            <input value="" type="text" class="form-control" id="nombreEmpresa" name="nombreEmpresa" placeholder="Nombre">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="nit" class="form-label">Nombre de Usuario</label>
+                            <input type="text" class="form-control" id="nit" name="nit" placeholder="NIT">
+                        </div>
+                        <!-- <div class="col-md-4 mb-3">
+                            <label for="ciudad" class="form-label">Fecha de </label>
+                            <input type="text" class="form-control" id="ciudad" name="ciudad" placeholder="Ciudad">
+                        </div> -->
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha de Registro: Desde</label>
+                            <input type="date" class="form-control" id="fechaRegistroDesde" name="fechaRegistroDesde">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha de Registro: Hasta</label>
+                            <input type="date" class="form-control" id="fechaRegistro" name="fechaRegistroHasta">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-select" id="estado" name="estado">
+                                <option value="">Todos</option>
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-secondary">Buscar</button>
+                    <a href="/empresas" type="submit" class="btn btn-danger">Resetear Filtros</a>
+                    <button type="submit" class="btn btn-warning">Generar PDF</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resultados de la búsqueda -->
+        <div id="resultados">
+            <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+            <section class="table_outer">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-12">
+                            <div class="card border-0 shadow">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0 ">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th scope="col">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" value=""
+                                                                id="select_all" />
+                                                        </div>
+                                                    </th>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">EMPRESA<br>USUARIO</th>
+                                                    <th scope="col">FECHA<br>EMISIÓN</th>
+                                                    <th scope="col">FECHA<br>VENCIMIENTO</th>
+                                                    <th scope="col">TIPO<br>LICENCIA</th>
+                                                    <th scope="col">ESTADO<br>LICENCIA</th>
+                                                    <th scope="col">MODALIDAD<br>LICENCIA</th>
+                                                    <th scope="col">CREDITOS</th>
+                                                    <th scope="col">PRECIO (Q)</th>
+                                                    <th scope="col">ACCIÓN</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for licencia in Licencias %}
+                                                <tr>
+                                                    <th scope="row">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input checkbox" type="checkbox" value=""
+                                                                id="flexCheckDefault1" />
+                                                        </div>
+                                                    </th>
+                                                    <td>{{ forloop.counter }}</td>
+                                                    <td>{% if licencia.empresa %}{{licencia.empresa.Nombre}}{% else %}{{licencia.usuario.Email}}{% endif %}</td>
+                                                    <td>{{ licencia.fecha_inicio|date:'Y-m-d' }}</td>
+                                                    <td>{{ licencia.fecha_fin|date:'Y-m-d' }}</td>
+                                                    <td>{{ licencia.tipo }}</td>
+                                                    <td>{{ licencia.activa }}</td>
+                                                    <td>{{ licencia.modalidad }}</td>
+                                                    <td>{{ licencia.cantidad_creditos }}</td>
+                                                    <td>{{ licencia.costo_tipo }}</td>
+                                                    <td>
+                                                        <!-- <button type="button"  class="btn btn-success btn-sm px-2">
+                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                        </button> -->
+                                                        <a href="/licencias/editar/{{ licencia.TokenAuth }}" class="btn btn-primary btn-sm px-2">
+                                                            <i class="fa-solid fa-eye">
+                                                                <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </a>
+                                                        <!-- <button type="button" class="btn btn-danger btn-sm px-2">
+                                                            <i class="fa-solid fa-trash">
+                                                                <img src="/static/icos/delete_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </button> -->
+                                                    </td>
+                                                </tr>
+                                            {% empty %}
+                                                <tr>
+                                                    <td colspan="10" class="text-center">No hay licencias creadas aún.</td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <script>
+
+        $(document).ready(function () {
+            // Select/deselect all checkboxes
+            $('#select_all').click(function () {
+                if ($(this).is(':checked')) {
+                    $('.checkbox').prop('checked', true);
+                } else {
+                    $('.checkbox').prop('checked', false);
+                }
+            });
+        
+            // If all checkboxes are selected, select the top checkbox
+            $('.checkbox').click(function () {
+                if ($('.checkbox:checked').length === $('.checkbox').length) {
+                    $('#select_all').prop('checked', true);
+                } else {
+                    $('#select_all').prop('checked', false);
+                }
+            });
+        });
+
+        document.querySelectorAll(".validateButton").forEach(function(button) {
+            button.addEventListener("click", function() {
+                this.querySelector(".spinner-border").style.display = "inline-block";
+                var icono = this.querySelector(".fa-eye");
+                icono.style.display = "none";
+        
+                setTimeout(() => {
+                    this.disabled = true; 
+                }, 1);
+            });
+        });
+
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{% endblock %}

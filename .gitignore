@@ -1,0 +1,17 @@
+oneshot/migrations/
+signbox/migrations/
+app/migrations/__pycache__/
+vol/migrations/
+webhook/migrations/
+media/signbox/
+media/vol/
+media/oneshot/
+media/4identity/4identity_files/
+media/4identity/4identity_prezip/
+media/4identity/4identity_zip/
+media/4identity/4identity_sign/
+media/pagoPlanilla/
+ngrok.exe
+.env
+.env.dev
+.env.prod

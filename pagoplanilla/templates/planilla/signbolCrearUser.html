@@ -1,0 +1,359 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Empresa</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #sugerencias {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            background: #fff;
+        }
+        #sugerencias .list-group-item:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body><br>
+    <div class="container mt-5">
+        <!-- Sección de creación de empresa -->
+        {% if messages %}
+            <div>
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-center">
+                    <h2 class="card-title mb-4">Crear Usuario</h2>
+                </div>
+                <form id="crear-empresa-form" method="post">
+                    {% csrf_token %}
+                    <!-- Primera fila -->
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="nombreUsuario" class="form-label">Nombre de Usuario</label>
+                            <input name="nombreUsuario" type="email" class="form-control" id="nombreUsuario" placeholder="Nombre de Usuario" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input name="email" type="email" class="form-control" id="email" placeholder="Email" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Segunda fila: Empresa -->
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="isEmpresa" id="isEmpresa" onchange="toggleEmpresaField()">
+                                <label class="form-check-label" for="isEmpresa">¿Pertenece a una empresa?</label>
+                            </div>
+                            <div id="empresaField" class="mt-3" style="display: none;">
+                                <label for="nombreEmpresa" class="form-label">Nombre de la Empresa</label>
+                                <input name="nombreEmpresa" type="text" class="form-control" id="nombreEmpresa" placeholder="Ingrese nombre de la empresa" oninput="autocompleteEmpresa()">
+                                <div id="sugerencias" class="list-group position-absolute mt-1" style="z-index: 1000; display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                    <!-- Tercera fila -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="psw1" class="form-label">Contraseña</label>
+                            <input name="psw1" type="password" class="form-control" id="psw1" placeholder="Contraseña" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="psw2" class="form-label">Confirmar Contraseña</label>
+                            <input name="psw2" type="password" class="form-control" id="psw2" placeholder="Confirmar Contraseña" required>
+                        </div>
+                    </div>
+
+                    <!-- <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isSuperUser">
+                                <label class="form-check-label" for="isSuperUser">Super Usuario</label>
+                            </div>
+                        </div>
+                    </div> -->
+                    
+                    <!-- Opciones de permisos -->
+                    <!-- <div class="mt-4">
+                        <h5 class="text-center mb-3">Permisos del Usuario</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-header text-center">Firma Ágil</div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input name="is_plantilla" class="form-check-input" type="checkbox" id="is_plantilla" {% if miembroPlantilla %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_plantilla">Plantillas</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input name="is_contacto" class="form-check-input" type="checkbox" id="is_contacto" {% if miembroSignbolContactos %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_contacto">Contactos</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-header text-center">OneShot</div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input name="is_envio" class="form-check-input" type="checkbox" id="is_envio" {% if miembroSignbolEnvios %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_envio">Envíos</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input name="is_reportes" class="form-check-input" type="checkbox" id="is_reportes" {% if miembroSignbolReportes %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_reportes">Reportes</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-header text-center">VOL</div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input name="is_AdminSignbol" class="form-check-input" type="checkbox" id="is_AdminSignbol" {% if miembroSignbolAdmin %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_AdminSignbol">Admin Signbol</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-header text-center">4identity</div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input name="is_plantilla" class="form-check-input" type="checkbox" id="is_plantilla" {% if miembroPlantilla %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_plantilla">Plantillas</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input name="is_contacto" class="form-check-input" type="checkbox" id="is_contacto" {% if miembroSignbolContactos %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_contacto">Contactos</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-header text-center">eSign</div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input name="is_envio" class="form-check-input" type="checkbox" id="is_envio" {% if miembroSignbolEnvios %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_envio">Envíos</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input name="is_reportes" class="form-check-input" type="checkbox" id="is_reportes" {% if miembroSignbolReportes %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_reportes">Reportes</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-header text-center">GeneraDocs</div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input name="is_AdminSignbol" class="form-check-input" type="checkbox" id="is_AdminSignbol" {% if miembroSignbolAdmin %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_AdminSignbol">Admin Signbol</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+
+                    <section class="section-contendores">
+                        <h5 class="text-center mb-3">Permisos del Usuario</h5>
+                        <table class="table table-bordered border-dark" style="width: 35%; margin: auto;">
+                                <thead>
+                                    <tr>
+                                    <th class="th-encabezado" scope="col">Permisos</th>
+                                    <th class="th-encabezado" scope="col">Modulos</th>
+                                    </tr>
+                                </thead>
+                              <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input name="is_signbox" class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" {% if miembroSignbox %}checked{% endif %}>
+                                            <label class="form-check-label" for="flexSwitchCheckDefault">Signbox</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input name="is_oneshot" class="form-check-input" type="checkbox" role="switch" id="SwitchOneShot" {% if miembroOneshot %}checked{% endif %}>
+                                            <label class="form-check-label" for="SwitchOneShot">Oneshot</label>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input name="is_vol" class="form-check-input" type="checkbox" role="switch" id="is_vol" {% if miembroVol %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_vol">Vol</label>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input name="is_4identity" class="form-check-input" type="checkbox" role="switch" id="is_4identity" {% if miembro4identity %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_4identity">4identity</label>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input name="is_esign" class="form-check-input" type="checkbox" role="switch" id="is_esign" {% if miembroeSign %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_esign">eSign</label>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input name="is_signbol" class="form-check-input" type="checkbox" role="switch" id="is_signbol" {% if miembroSignbol %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_signbol">SignBol</label>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input name="is_plantilla" class="form-check-input" type="checkbox" role="switch" id="is_plantilla" {% if miembroPlantilla %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_plantilla">Plantillas</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input name="is_contacto" class="form-check-input" type="checkbox" role="switch" id="is_contacto" {% if miembroSignbolContactos %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_contacto">Contactos</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input name="is_envio" class="form-check-input" type="checkbox" role="switch" id="is_envio" {% if miembroSignbolEnvios %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_envio">Envíos</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input name="is_reportes" class="form-check-input" type="checkbox" role="switch" id="is_reportes" {% if miembroSignbolReportes %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_reportes">Reportes</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input name="is_AdminSignbol" class="form-check-input" type="checkbox" role="switch" id="is_AdminSignbol" {% if miembroSignbolAdmin %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_AdminSignbol">Admin Signbol</label>
+                                        </div>
+                                    </td>
+                                </tr>
+                              </tbody>
+                        </table>
+                    </section>
+                    
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-primary">Guardar Usuario</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelar()">Regresar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="app"></div>
+    </div>
+    <script>
+        // Mostrar u ocultar campo de empresa
+        function toggleEmpresaField() {
+            const checkbox = document.getElementById('isEmpresa');
+            const empresaField = document.getElementById('empresaField');
+            empresaField.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+                // Convertir la variable de Django a JavaScript
+        const empresas = {{ empresas|safe }};
+
+        // Mostrar u ocultar campo de empresa
+        function toggleEmpresaField() {
+            const checkbox = document.getElementById('isEmpresa');
+            const empresaField = document.getElementById('empresaField');
+            empresaField.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        // Función de autocompletado
+        function autocompleteEmpresa() {
+            const input = document.getElementById('nombreEmpresa');
+            const sugerencias = document.getElementById('sugerencias');
+            const query = input.value.toLowerCase();
+
+            // Limpiar sugerencias previas
+            sugerencias.innerHTML = '';
+
+            if (query) {
+                const coincidencias = empresas.filter(empresa => empresa.toLowerCase().includes(query));
+
+                if (coincidencias.length > 0) {
+                    sugerencias.style.display = 'block';
+
+                    coincidencias.forEach(empresa => {
+                        const item = document.createElement('a');
+                        item.className = 'list-group-item list-group-item-action';
+                        item.textContent = empresa;
+                        item.onclick = () => seleccionarEmpresa(empresa);
+                        sugerencias.appendChild(item);
+                    });
+                } else {
+                    sugerencias.style.display = 'none';
+                }
+            } else {
+                sugerencias.style.display = 'none';
+            }
+        }
+
+        // Función para seleccionar empresa
+        function seleccionarEmpresa(empresa) {
+            const input = document.getElementById('nombreEmpresa');
+            const sugerencias = document.getElementById('sugerencias');
+            input.value = empresa;
+            sugerencias.style.display = 'none';
+        }
+
+        function cancelar(){
+            window.history.back()
+        }
+
+
+    </script>
+</body>
+</html>
+{% endblock %}

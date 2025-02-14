@@ -1,0 +1,98 @@
+{% extends 'app_base.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentos Firmados</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="/static/styles/vol/vol_docDone.css">
+</head>
+<body>
+    <br>
+    <div class="boxHeader">
+        <p><h1>Verificación de Firmas Electrónicas</h1></p>
+    </div><br>
+    <div class="container">
+        {% for data in resultados %}
+        <div class="contenedorHeader">
+            <div class="contenedorHeader_1">
+                <span class="material-symbols-outlined">
+                    description
+                </span>
+                <p id="nameArchivo"></p>
+            </div>
+            <div class="contenedorHeader_2">
+                <label for="btn_file" class="btn btn-dark">Ver documento</label>
+                <label for="btn_informe" class="btn btn-dark">Ver Informe</label>
+            </div>
+        </div>
+        <br>
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-table me-1"></i>
+                Documentos Firmados
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Archivo</th> 
+                            <th style="width: 15%;">Firmante</th> 
+                            <th style="width: 15%;">Emitido por</th>
+                            <th style="width: 15%;">Valido hasta</th>
+                            <th style="width: 15%;">Fecha de Firma</th>
+                            <th style="width: 15%;">Fecha de revocación</th>
+                            <th style="width: 15%;">Validez</th>
+                            <!-- <th style="width: 10%;">Previsualizador</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data_0 in data %}
+                        <tr>
+                            <td>{{data_0.1}}</td>
+                            <td>{{data_0.3}}</td>
+                            <td>{{data_0.4}}</td>
+                            <td>{{data_0.0}}</td>
+                            <td>{{data_0.5}}</td>
+                            <td></td>
+                            <td class="valido">{{data_0.6}}</td>
+                            <button name="btn_file" id="btn_file" class="btn btn-secondary" onclick="mostrar('{{data_0.1}}')" style="display: none;">Ver</button>
+                            <button name="btn_informe" id="btn_informe" class="btn btn-secondary" onclick="mostrarInforme('{{data_0.1}}')" style="display: none;">Ver</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+        <div class="box">
+            <form action={% url "sign" %} method="post">
+                {% csrf_token %}
+                <h3></h3>
+                <div class="box">
+                    <!-- <button type="submit" class="btn btn-dark">
+                        Firmar
+                    </button> -->
+                </div>
+            </form>
+            <p>{{ data }}</p>
+        </div>
+    </div>
+    <div class="overlay" id="overlay">
+        <div class="modal" id="modal">
+            <div id="contenedor"></div>
+          <!-- <img src="{% static "imagenes/Prueba_1.pdf.jpeg" %}" alt=""> -->
+          <div class="box">
+              <span class="btn btn-secondary" onclick="closeModal()">Cerrar</span>
+          </div>
+        </div>
+      </div>
+      <script src="/static/js/vol/vol_docDone.js"></script>
+</body>
+</html>
+{% endblock %}

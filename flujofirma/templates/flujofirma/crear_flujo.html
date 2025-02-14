@@ -1,0 +1,246 @@
+  {% extends 'dashboard/index.html' %}
+  {% block content %}
+  <!doctype html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Gestión de Firmantes</title>
+    <link rel="stylesheet" href="/static/assets/css/core/libs.min.css">
+    <link rel="stylesheet" href="/static/assets/css/hope-ui.min.css?v=2.0.0">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+      /* OVERLAY */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        color: #ffffff;
+    }
+    /* OVERLAY */
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container py-5">
+
+          <!-- OVERLAY -->
+          <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+            <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;"></div>
+                <span class="mt-2 text-light">CARGANDO...</span>
+            </div>
+        </div>
+    <!-- OVERLAY -->
+
+          <!-- MESSAGES -->
+          {% if messages %}
+          <div class="toast-container position-fixed top-0 end-0 p-3">
+              {% for message in messages %}
+                  <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                      <div class="toast-header" style="color: white; background-color:{% if 'danger' in message.tags %}red{% elif 'success' in message.tags %}green{% elif 'warning' in message.tags %}orange{% else %}red{% endif %}">
+                          <strong class="me-auto">{% if 'danger' in message.tags %}Error{% endif %}</strong>
+                          <small></small>
+                          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                      </div>
+                      <div class="toast-body">
+                          {{ message }}
+                      </div>
+                  </div>
+              {% endfor %}
+          </div>
+            
+
+          <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                  const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+                  const toastList = toastElList.map(function (toastEl) {
+                      return new bootstrap.Toast(toastEl);
+                  });
+                  toastList.forEach(toast => toast.show());
+              });
+          </script>      
+      {% endif %}
+  <!-- MESSAGES -->
+
+        <h1 class="text-center mb-4">Crear Flujo de Firmantes</h1>.
+        {% if licencia == 'activa' %}
+          <div class="card">
+            
+              <form method="post" id="formulario_envio">
+                {% csrf_token %}
+                <div class="card-body">
+                  <!-- Campo para nombre del envío -->
+                  <div class="mb-4">
+                    <label for="nombreEnvio" class="form-label">Nombre del Envío</label>
+                    <input required name="nombreEnvio" type="text" class="form-control" id="nombreEnvio" placeholder="Ingrese el nombre del envío" required>
+                    <div class="invalid-feedback">Por favor, completa este campo.</div>
+                  </div>
+                <!-- Tabla dinámica de firmantes -->
+                <h3 class="mb-3">Lista de Firmantes</h3>
+                <table class="table table-bordered align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width: 5%;">#</th>
+                      <th style="width: 30%;">Correo</th>
+                      <th style="width: 20%;">Nombres</th>
+                      <th style="width: 20%;">Apellidos</th>
+                      <th style="width: 20%;">Tipo de Firma</th>
+                      <th style="width: 5%;">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody id="firmantesTable">
+                    <!-- Fila predeterminada -->
+                    <tr>
+                      <td class="text-center">1</td>
+                      <td><input type="email" class="form-control" name="firmanteCorreo_1" placeholder="Correo" required></td>
+                      <td><input type="text" class="form-control" name="firmanteNombres_1" placeholder="Nombres" required></td>
+                      <td><input type="text" class="form-control" name="firmanteApellidos_1" placeholder="Apellidos" required></td>
+                      <td>
+                        <select class="form-select" name="firmanteTipoFirma_1">
+                          <option value="larga">Larga Duración</option>
+                          <option value="oneshot">OneShot</option>
+                        </select>
+                      </td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-secondary me-1 move-up">▲</button>
+                        <button type="button" class="btn btn-sm btn-secondary move-down">▼</button>
+                        <button type="button" class="btn btn-danger btn-sm delete-row">Eliminar</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <!-- Botón para agregar nuevo firmante -->
+                <div class="d-grid mb-4">
+                  <button id="addRowBtn" class="btn btn-success">Agregar Firmante</button>
+                </div>
+
+                <!-- Checkbox para flujo según orden -->
+                <div class="form-check mb-4">
+                  <input class="form-check-input" type="checkbox" id="flujoPorOrden" name="flujoPorOrden">
+                  <label class="form-check-label" for="flujoPorOrden">
+                    Firmar documentos sin orden
+                  </label>
+                </div>
+
+                <!-- Botón "Siguiente" -->
+                <div class="d-grid">
+                  <button onclick="enviar_formulario()" class="btn btn-primary" id="nextBtn">Siguiente</button>
+                </div>
+              </form>
+            </div>
+          {% elif licencia == 'creditos' %}
+                {% include "signbox/error_creditos_agotados.html" %}
+          {% elif licencia == '404' %}
+            {% include "signbox/error_licencia_404.html" %}
+          {% else %}
+              {% include "signbox/error_licencia_vencida.html" %}
+          {% endif %}
+      </div>
+    </div>
+
+    <script>
+      let orden = 2; // El ID comienza en 2 porque ya hay una fila predeterminada
+
+      // Función para agregar una nueva fila de firmante
+      document.getElementById('addRowBtn').addEventListener('click', function () {
+        const table = document.getElementById('firmantesTable');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="text-center">${orden}</td>
+          <td><input type="email" class="form-control" name="firmanteCorreo_${orden}" placeholder="Correo" required></td>
+          <td><input type="text" class="form-control" name="firmanteNombres_${orden}" placeholder="Nombres" required></td>
+          <td><input type="text" class="form-control" name="firmanteApellidos_${orden}" placeholder="Apellidos" required></td>
+          <td>
+            <select class="form-select" name="firmanteTipoFirma_${orden}">
+              <option value="larga">Larga Duración</option>
+              <option value="oneshot">OneShot</option>
+            </select>
+          </td>
+          <td class="text-center">
+            <button type="button" class="btn btn-sm btn-secondary me-1 move-up">▲</button>
+            <button type="button" class="btn btn-sm btn-secondary move-down">▼</button>
+            <button type="button" class="btn btn-danger btn-sm delete-row">Eliminar</button>
+          </td>
+        `;
+        table.appendChild(row);
+        orden++;
+      });
+
+      // Función para eliminar una fila
+      document.getElementById('firmantesTable').addEventListener('click', function (e) {
+        if (e.target.classList.contains('delete-row')) {
+          e.target.closest('tr').remove();
+          // Opcional: Recalcular los números de ID
+          recalcularIDs();
+        }
+      });
+
+      // Función para mover las filas hacia arriba o abajo
+      document.getElementById('firmantesTable').addEventListener('click', function (e) {
+        const row = e.target.closest('tr');
+        if (e.target.classList.contains('move-up') && row.previousElementSibling) {
+          row.parentNode.insertBefore(row, row.previousElementSibling);
+          recalcularIDs();
+        } else if (e.target.classList.contains('move-down') && row.nextElementSibling) {
+          row.parentNode.insertBefore(row.nextElementSibling, row);
+          recalcularIDs();
+        }
+      });
+
+      // Recalcular los IDs en la primera columna
+      function recalcularIDs() {
+        const rows = document.querySelectorAll('#firmantesTable tr');
+        rows.forEach((row, index) => {
+          row.querySelector('td').textContent = index + 1;
+        });
+      }
+
+                      // OVERLAY
+                      document.addEventListener("DOMContentLoaded", () => {
+                        if (sessionStorage.getItem("showOverlay") === "true") {
+                            document.getElementById("overlay").classList.add("d-none"); // Oculta el overlay
+                            sessionStorage.removeItem("showOverlay"); // Limpia el estado
+                        }
+                    });
+            
+                    document.querySelectorAll(".validateButton").forEach(button => {
+                        button.addEventListener("click", function() {
+                            document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                            sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+                        });
+                    });
+                    // OVERLAY
+
+
+    function enviar_formulario(){
+      const form = document.getElementById("formulario_envio");                
+      if (form.checkValidity()) {
+        
+        document.getElementById("overlay").classList.remove("d-none"); 
+        sessionStorage.setItem("showOverlay", "true");
+
+        const formulario = document.getElementById('formulario_envio')
+        formulario.submit()              
+      } else {
+        form.classList.add("was-validated");
+      }   
+    }
+    
+
+    </script>
+  </body>
+  </html>
+  {% endblock %}

@@ -1,0 +1,458 @@
+{% extends 'dashboard/index.html' %}
+{% load custom_filters %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuarios</title>
+    <style>
+        .encabezado{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .contenedor{
+            padding: 4%;
+        }
+        #btn_enviar{
+            width: 200px;
+        }
+        .btn{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        div[name="mensaje"]{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: auto;
+        }
+        .section-contendores{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .form-check-input:checked {
+            background-color: green;
+            border-color: green;
+        }
+        .th-encabezado{
+            text-align: center;
+        }
+        .tab-button {
+            cursor: pointer;
+            padding: 10px 20px;
+            border: none;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .tab-button.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+
+        {% if messages %}
+            <div>
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <h2 class="display-5 mb-5 text-center">Detalle Usuario</h2>
+
+        <!-- Fila de opciones -->
+        <div class="d-flex justify-content-center mb-4">
+            <button class="tab-button active" onclick="showTab('editar_usuario')">Editar</button>
+            <button class="tab-button" onclick="showTab('permisos_usuario')">Permisos</button>
+            <button class="tab-button" onclick="showTab('detalle_licencia')">Licencia</button>
+        </div>        
+            
+        <div id="editar_usuario" class="tab-content active">
+            <form action="{% url 'editar_usuario' usuario_editar %}" method="post" class="row g-3" id="formulario">
+                {% csrf_token %}
+                
+                <!-- Fila 1 -->
+                <div class="col-md-6">
+                    <label for="nombres" class="form-label">Nombres:</label>
+                    <input type="text" id="nombres" name="nombres" value="{{ find_user_context.UsuarioGeneral.first_name }}" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="apellidos" class="form-label">Apellidos:</label>
+                    <input type="text" id="apellidos" name="apellidos" value="{{ find_user_context.UsuarioGeneral.last_name }}" required class="form-control">
+                </div>
+        
+                <!-- Fila 2 -->
+                <div class="col-md-6">
+                    <label for="username" class="form-label">Usuario Sistema:</label>
+                    <input type="text" id="username" name="username" value="{{ find_user_context.UsuarioGeneral.username }}" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email:</label>
+                    <input type="email" id="email" name="email" value="{{ find_user_context.UsuarioGeneral.email }}" required class="form-control">
+                </div>
+
+                <!-- Fila 3 -->
+                <div class="col-md-6">
+                    <label for="new_celular" class="form-label">Celular:</label>
+                    <input type="text" id="new_celular" name="new_celular" value="{{ find_user_context.Celular }}" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="" class="form-label">Empresa: {% if empresa_or_licencia == "empresa" %}{{ asociado.Nombre }}{% else %}Cuenta Individual{% endif %}</label>
+                    <input name="nombreEmpresa" {% if empresa_or_licencia == "empresa" %} value="{{ asociado.Nombre }} "{% else %} value="" {% endif %} type="text" class="form-control" id="nombreEmpresa" placeholder="Dejar en blanco para no cambiar" oninput="autocompleteEmpresa()">
+                    <div id="sugerencias" class="list-group position-absolute mt-1" style="z-index: 1000; display: none;"></div>
+                </div>
+        
+                <!-- Fila 4 -->
+                <div class="col-md-6">
+                    <label for="password" class="form-label">Contraseña:</label>
+                    <input type="password" id="password" name="password" placeholder="Dejar en blanco para no cambiar" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="password2" class="form-label">Confirmar Contraseña:</label>
+                    <input type="password" id="password2" name="password2" placeholder="Dejar en blanco para no cambiar" class="form-control">
+                </div>
+        
+                <!-- Fila 4 -->
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_superuser" name="is_superuser" {% if usuario.is_superuser %}checked{% endif %}>
+                        <label class="form-check-label" for="is_superuser">
+                            Superusuario
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if usuario.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">
+                            Usuario Activado
+                        </label>
+                    </div>
+                </div>
+        </div>
+        
+            
+            <div id="permisos_usuario" class="tab-content">
+                <section class="section-contendores">
+                    <table class="table table-bordered border-dark" style="width: 35%; margin: auto;">
+                            <thead>
+                                <tr>
+                                <th class="th-encabezado" scope="col">Permisos</th>
+                                <th class="th-encabezado" scope="col">Modulos</th>
+                                </tr>
+                            </thead>
+                          <tbody>
+                            <tr>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input name="is_signbox" class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" {% if miembroSignbox %}checked{% endif %}>
+                                        <label class="form-check-label" for="flexSwitchCheckDefault">Signbox</label>
+                                    </div>
+                                </td>
+                                <td>
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input name="is_oneshot" class="form-check-input" type="checkbox" role="switch" id="SwitchOneShot" {% if miembroOneshot %}checked{% endif %}>
+                                        <label class="form-check-label" for="SwitchOneShot">Oneshot</label>
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input name="is_vol" class="form-check-input" type="checkbox" role="switch" id="is_vol" {% if miembroVol %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_vol">Vol</label>
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input name="is_4identity" class="form-check-input" type="checkbox" role="switch" id="is_4identity" {% if miembro4identity %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_4identity">4identity</label>
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input name="is_esign" class="form-check-input" type="checkbox" role="switch" id="is_esign" {% if miembroeSign %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_esign">eSign</label>
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input name="is_signbol" class="form-check-input" type="checkbox" role="switch" id="is_signbol" {% if miembroSignbol %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_signbol">SignBol</label>
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input name="is_plantilla" class="form-check-input" type="checkbox" role="switch" id="is_plantilla" {% if miembroPlantilla %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_plantilla">Plantillas</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input name="is_contacto" class="form-check-input" type="checkbox" role="switch" id="is_contacto" {% if miembroSignbolContactos %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_contacto">Contactos</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input name="is_envio" class="form-check-input" type="checkbox" role="switch" id="is_envio" {% if miembroSignbolEnvios %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_envio">Envíos</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input name="is_reportes" class="form-check-input" type="checkbox" role="switch" id="is_reportes" {% if miembroSignbolReportes %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_reportes">Reportes</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input name="is_AdminSignbol" class="form-check-input" type="checkbox" role="switch" id="is_AdminSignbol" {% if miembroSignbolAdmin %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_AdminSignbol">Admin Signbol</label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input name="is_flujofirma" class="form-check-input" type="checkbox" role="switch" id="is_flujofirma" {% if miembroFlujoFirmaNormal %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_flujofirma">Flujo Firma</label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input name="is_adminFlujoFirma" class="form-check-input" type="checkbox" role="switch" id="is_adminFlujoFirma" {% if miembroFlujoFirmaAdmin %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_adminFlujoFirma">Admin</label>
+                                    </div>
+                                </td>
+                            </tr>
+                          </tbody>
+                    </table>
+                </section>
+            </div>
+
+                <!-- Sección Detalles de Licencia -->
+                <div id="detalle_licencia" class="tab-content">
+                    <div class="d-flex justify-content-center">
+                        <p><strong>{% if empresa_or_licencia == "licencia" %}Licencia Individual{% elif empresa_or_licencia == "empresa" %}Usuario depende de licencia de empresa{% else %}     {% endif %}</strong></p>
+                    </div>
+                    <div id="resultados">
+                        <section class="table_outer">
+                            <div class="container">
+                                <div class="row justify-content-center">
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow">
+                                            <div class="card-body">
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover mb-0 ">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th>#</th>
+                                                                <th>{% if empresa_or_licencia == "licencia" %}Licencia{% else %}Empresa{% endif %}</th>
+                                                                <th>{% if empresa_or_licencia == "licencia" %}Fecha Inicio{% else %}Email Contacto Empresa{% endif %}</th>
+                                                                {% if empresa_or_licencia == "licencia" %}
+                                                                    <th>Fecha Fin</th>
+                                                                    <th>Creditos Comprados</th>
+                                                                    <th>Creditos Consumidos</th>
+                                                                    <th>Estado</th>
+                                                                {% endif %}    
+                                                                <th>Acción</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% if empresa_or_licencia == "licencia" %}
+                                                                {% for licencia in asociado %}
+                                                                    <tr>
+                                                                        <td>{{ forloop.counter }}</td>
+                                                                        <td>{{ licencia.tipo }}</td>
+                                                                        <td>{{ licencia.fecha_inicio|date:'Y-m-d' }}</td>
+                                                                        <td>{{ licencia.fecha_fin|date:'Y-m-d' }}</td>
+                                                                        <td>{{ licencia.cantidad_creditos }}</td>
+                                                                        <td>{{ licencia.consumo }}</td>
+                                                                        <td>{{ licencia.activa }}</td>
+                                                                        <td>
+                                                                            <a href="/licencias/editar/{{ licencia.TokenAuth }}" class="btn btn-primary btn-sm px-2">
+                                                                                <i class="fa-solid fa-eye">
+                                                                                    <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                                                </i>
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                {% empty %}
+                                                                    <tr>
+                                                                        <td colspan="4" class="text-center">No hay licencias o empresas asociadas aún.</td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            {% elif empresa_or_licencia == "empresa" %}
+                                                                    <tr>
+                                                                        <td>1</td>
+                                                                        <td>{{ asociado.Nombre }}</td>
+                                                                        <td>{{ asociado.EmailContacto }}</td>
+                                                                        <td>
+                                                                            <a href="/empresas/editar/{{ asociado.Token }}" class="btn btn-primary btn-sm px-2">
+                                                                                <i class="fa-solid fa-eye">
+                                                                                    <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                                                </i>
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                            {% else %}
+                                                                    <tr>
+                                                                        <td colspan="4" class="text-center">No hay licencias o empresas asociadas aún.</td>
+                                                                    </tr>
+                                                            {% endif %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+            <div id="liveAlertPlaceholder"></div>
+            <hr>
+            <div class="d-flex justify-content-center" style="gap: 10px;">
+                <button type="button" id="btn_enviar" class="btn btn-primary">Guardar Cambios</button>
+                <button type="button" onclick="regresar()" id="btn_regresar" class="btn btn-secondary">Regresar</button>
+            </div>
+        </form>
+    </div>
+        <footer>
+            <hr>
+        </footer>
+    <script>
+
+        document.getElementById('btn_enviar').addEventListener('click', function() {
+            var password = document.getElementById('password').value;
+            var password2 = document.getElementById('password2').value;
+        
+            if (password !== password2) {
+
+                const alertPlaceholder = document.getElementById('liveAlertPlaceholder')
+                const appendAlert = (message, type) => {
+                const wrapper = document.createElement('div')
+                wrapper.innerHTML = [
+                    `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+                    `   <div>${message}</div>`,
+                    '   <button type="button" class="btn-Jclose" data-bs-dismiss="alert" aria-label="Close"></button>',
+                    '</div>'
+                ].join('')
+        
+                alertPlaceholder.append(wrapper)
+        
+                setTimeout(() => {
+                    wrapper.querySelector('.alert').classList.add('alert-fadeout');
+                    setTimeout(() => {
+                        wrapper.remove();
+                    }, 1500);
+                }, 1500);
+                }
+
+                const alertTrigger = document.getElementById('btn_enviar')
+                appendAlert('Las contraseñas no coinciden', 'danger')
+            } else {
+                document.getElementById('formulario').submit();
+            }
+        });
+
+        function regresar(){
+            window.history.back();
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        const empresas = {{ empresas|safe }};
+
+        // Mostrar u ocultar campo de empresa
+        function toggleEmpresaField() {
+            const checkbox = document.getElementById('isEmpresa');
+            const empresaField = document.getElementById('empresaField');
+            empresaField.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        // Función de autocompletado
+        function autocompleteEmpresa() {
+            const input = document.getElementById('nombreEmpresa');
+            const sugerencias = document.getElementById('sugerencias');
+            const query = input.value.toLowerCase();
+
+            // Limpiar sugerencias previas
+            sugerencias.innerHTML = '';
+
+            if (query) {
+                const coincidencias = empresas.filter(empresa => empresa.toLowerCase().includes(query));
+
+                if (coincidencias.length > 0) {
+                    sugerencias.style.display = 'block';
+
+                    coincidencias.forEach(empresa => {
+                        const item = document.createElement('a');
+                        item.className = 'list-group-item list-group-item-action';
+                        item.textContent = empresa;
+                        item.onclick = () => seleccionarEmpresa(empresa);
+                        sugerencias.appendChild(item);
+                    });
+                } else {
+                    sugerencias.style.display = 'none';
+                }
+            } else {
+                sugerencias.style.display = 'none';
+            }
+        }
+
+        // Función para seleccionar empresa
+        function seleccionarEmpresa(empresa) {
+            const input = document.getElementById('nombreEmpresa');
+            const sugerencias = document.getElementById('sugerencias');
+            input.value = empresa;
+            sugerencias.style.display = 'none';
+        }
+        
+    </script>
+</body>
+</html>
+{% endblock %}

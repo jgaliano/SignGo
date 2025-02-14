@@ -1,0 +1,148 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign</title>
+    <link rel="stylesheet" href="/static/styles/signbox/sign.css">
+
+</head>
+    <body>
+        <div class="caja">
+                <div class="container mt-5">
+                        <div id="liveAlertPlaceholder"></div>
+                        <div class="d-flex justify-content-center align-items-center mb-4">
+                            <h2>Documentos Firmados con Éxito</h2>
+                        </div><br>
+                            <div id="resultados">
+                                <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+                                <section class="table_outer">
+                                    <div class="container">
+                                        <div class="row justify-content-center">
+                                            <div class="col-12">
+                                                <div class="card border-0 shadow">
+                                                    <div class="card-body">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-hover mb-0 ">
+                                                                <thead class="table-light">
+                                                                    <tr>
+                                                                        <th scope="col">
+                                                                            <div class="form-check">
+                                                                                <input class="form-check-input" type="checkbox" value=""
+                                                                                    id="select_all" />
+                                                                            </div>
+                                                                        </th>
+                                                                        <th scope="col">#</th>
+                                                                        <th scope="col">NOMBRE DOCUMENTO</th>
+                                                                        <th scope="col">TAMAÑO DOCUMENTO</th>
+                                                                        <th scope="col">ACCIÓN</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                {% for documento in archivos_firmados %}
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <th scope="row">
+                                                                            <div class="form-check">
+                                                                                <input class="form-check-input checkbox" type="checkbox" value=""
+                                                                                    id="flexCheckDefault1" />
+                                                                            </div>
+                                                                        </th>
+                                                                        <td>{{ forloop.counter }}</td>
+                                                                        <td>{{ documento.documento.nombre_documento }}</td>
+                                                                        <td>{{ data.1 }}</td>
+                                                                        <td>
+                                                                            <button class="btn btn-success" onclick="mostrar('hola', '{{ documento.documento.url_documento }}')" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                                {% endfor %}
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+
+                    {% if CantidadNoFirmados >= 1 %}
+                        <br>
+                        <label for=""><strong>Los siguientes documentos no se han firmado.</strong></label>
+                        <div class="card mb-4">
+                            <div class="card-header" style="background-color: rgb(127, 0, 0); color: white">
+                                <i class="fas fa-table me-1"></i>
+                                Documentos No Firmados
+                            </div>
+                            <div class="card-body">
+                                <table id="datatablesSimple" class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre Documento</th>
+                                            <th>Error</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                        {% for data in archivos_firmados %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ data.documento.nombre_documento }}</td>
+                                            <td>{{ data.1 }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    </div>
+                </div>
+
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">DemoFirma</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="contenedor" class="modal-body" style="height: 80vh;"></div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+     <script src="/static/js/signbox/firmados.js"></script>
+    </body>
+    <script>
+        function showAlert(message, type) {
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible" role="alert">'
+                + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+            document.getElementById('liveAlertPlaceholder').append(wrapper);
+
+            setTimeout(() => {
+                wrapper.querySelector('.alert').classList.add('alert-fadeout');
+                setTimeout(() => {
+                    wrapper.remove();
+                }, 10000);
+            }, 10000);
+        }
+
+        {% if messages %}
+            {% for message in messages %}
+                showAlert("{{ message }}", "danger");
+            {% endfor %}
+        {% endif %}
+    </script>
+</html>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licencias</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #sugerencias {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            background: #fff;
+        }
+        #sugerencias .list-group-item:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body><br>
+    <div class="container mt-5">
+        {% if messages %}
+            <div>
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-center">
+                    <h2 class="card-title mb-4">Crear Licencia</h2>
+                </div>
+
+                <form id="crear-licencia-form" method="post">
+                    {% csrf_token %}
+
+                    <!-- Empresa | Usuario -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="empresaUsuario" class="form-label">Empresa | Usuario</label>
+                            <input name="empresaUsuario" type="text" class="form-control" id="empresaUsuario" placeholder="Ingrese Empresa o Usuario" oninput="autocompleteEmpresaUsuario()">
+                            <div id="sugerencias" class="list-group position-absolute mt-1" style="z-index: 1000; display: none;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="env" class="form-label">Entorno de trabajo</label>
+                            <select name="env" class="form-select" id="env" required>
+                                <option>Seleccione</option>
+                                <option value="prod">Producción</option>
+                                <option value="sandbox">Desarrollo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Fechas -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="fechaEmision" class="form-label">Fecha Emisión</label>
+                            <input name="fechaEmision" type="date" class="form-control" id="fechaEmision" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fechaVencimiento" class="form-label">Fecha Vencimiento</label>
+                            <input name="fechaVencimiento" type="date" class="form-control" id="fechaVencimiento" required>
+                        </div>
+                    </div>
+
+                    <!-- Selectores -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="tipoLicencia" class="form-label">Tipo de Licencia</label>
+                            <select name="tipoLicencia" class="form-select" id="tipoLicencia" required>
+                                <option value="">Seleccione</option>
+                                <option value="FF_Oneshot">Flujo Firma Oneshot</option>
+                                <option value="FF_Signbox">Flujo Firma Signbox</option>
+                                <option value="Firma Agil">Firma Ágil</option>
+                                <option value="Genera Docs">Genera Docs</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="estadoLicencia" class="form-label">Estado Licencia</label>
+                            <select name="estadoLicencia" class="form-select" id="estadoLicencia" required>
+                                <option value="">Seleccione</option>
+                                <option value="Activa">Activa</option>
+                                <option value="Expirada">Expirada</option>
+                                <option value="Inactiva">Inactiva</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="modalidadLicencia" class="form-label">Modalidad Licencia</label>
+                            <select name="modalidadLicencia" class="form-select" id="modalidadLicencia" required>
+                                <option value="">Seleccione</option>
+                                <option value="Por Fecha">Por Fecha</option>
+                                <option value="Por Consumo">Por Consumo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Créditos y Billing -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="cantidadCreditos" class="form-label">Cantidad Créditos</label>
+                            <input name="cantidadCreditos" type="number" class="form-control" id="cantidadCreditos" placeholder="Ingrese cantidad" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="usuarioBilling" class="form-label">Usuario Billing</label>
+                            <input name="usuarioBilling" type="text" class="form-control" id="usuarioBilling" placeholder="Usuario Billing">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="contrasenaBilling" class="form-label">Contraseña Billing</label>
+                            <input name="contrasenaBilling" type="password" class="form-control" id="contrasenaBilling" placeholder="Contraseña Billing">
+                        </div>
+                    </div>
+
+                    <!-- Precio y Observaciones -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label for="precio" class="form-label">Precio Licencia</label>
+                            <input name="precio" type="number" class="form-control" id="precio" placeholder="Ingrese el precio" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="precio_creditos" class="form-label">Precio Creditos</label>
+                            <input name="precio_creditos" type="number" class="form-control" id="precio_creditos" placeholder="Ingrese el precio" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="observaciones" class="form-label">Observaciones</label>
+                            <textarea name="observaciones" class="form-control" id="observaciones" rows="3" placeholder="Ingrese observaciones" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-primary">Guardar Licencia</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelar()">Regresar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Convertir la variable de Django a JavaScript
+        const empresasUsuarios = {{ empresasUsuarios|safe }};
+
+        // Función de autocompletado
+        function autocompleteEmpresaUsuario() {
+            const input = document.getElementById('empresaUsuario');
+            const sugerencias = document.getElementById('sugerencias');
+            const query = input.value.toLowerCase();
+
+            // Limpiar sugerencias previas
+            sugerencias.innerHTML = '';
+
+            if (query) {
+                const coincidencias = empresasUsuarios.filter(item => item.toLowerCase().includes(query));
+
+                if (coincidencias.length > 0) {
+                    sugerencias.style.display = 'block';
+
+                    coincidencias.forEach(item => {
+                        const elemento = document.createElement('a');
+                        elemento.className = 'list-group-item list-group-item-action';
+                        elemento.textContent = item;
+                        elemento.onclick = () => seleccionarEmpresaUsuario(item);
+                        sugerencias.appendChild(elemento);
+                    });
+                } else {
+                    sugerencias.style.display = 'none';
+                }
+            } else {
+                sugerencias.style.display = 'none';
+            }
+        }
+
+        // Función para seleccionar empresa o usuario
+        function seleccionarEmpresaUsuario(item) {
+            const input = document.getElementById('empresaUsuario');
+            const sugerencias = document.getElementById('sugerencias');
+            input.value = item;
+            sugerencias.style.display = 'none';
+        }
+
+        function cancelar() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
+{% endblock %}

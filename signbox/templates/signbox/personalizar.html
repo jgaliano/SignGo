@@ -1,0 +1,305 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Crear Estilos de Firma Electrónica</title>
+  <link rel="stylesheet" href="/static/assets/css/core/libs.min.css">
+  <link rel="stylesheet" href="/static/assets/css/hope-ui.min.css?v=2.0.0">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+            /* OVERLAY */
+            .overlay {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0, 0, 0, 0.7);
+              display: none;
+              justify-content: center;
+              align-items: center;
+              z-index: 1000;
+          }
+  
+          .spinner-border {
+              width: 3rem;
+              height: 3rem;
+              color: #ffffff;
+          }
+          /* OVERLAY */
+  </style>
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    <h1 class="text-center mb-4">Crear Estilos de Firma Electrónica</h1>
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="liveToastContainer">
+        <!-- Los toasts se generarán y mostrarán aquí -->
+    </div>
+    <!-- Sección para crear un nuevo estilo de firma -->
+    <div class="card mb-5">
+      <div class="card-body">
+        <h3 class="card-title">Crear Nuevo Estilo</h3>
+        <form id="form_estilo" action="{% url 'guardar_imagen' %}" method="post" class="needs-validation" novalidate enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="firmaImagen" class="form-label">Subir Imagen de la Firma</label>
+            <input type="file" accept=".jpg" class="form-control" id="firmaImagen" name="firmaImagen" required>
+            <div class="invalid-feedback">Por favor, completa este campo.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Opciones para la Firma</label>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="fecha" id="opcionFecha" name="opcionFecha">
+              <label class="form-check-label" for="opcionFecha">
+                Incluir Fecha
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="nombre" id="opcionNombre" name="opcionNombre">
+              <label class="form-check-label" for="opcionNombre">
+                Incluir Nombre
+              </label>
+            </div>
+            <!-- <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="nombre" id="opcionUbicacion" name="opcionUbicacion">
+              <label class="form-check-label" for="opcionUbicacion">
+                Incluir Ubicación
+              </label>
+            </div> -->
+          </div>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary validateButton">Guardar Estilo</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Lista de estilos creados -->
+    <div class="card">
+      <div class="card-body">
+        <h3 class="card-title">Estilos Disponibles</h3>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Estilo</th>
+              <th>Imagen</th>
+              <th>Fecha</th>
+              <th>Nombre</th>
+              <th>Ubicación</th>
+              <th>Acción</th>
+              <th>Predeterminado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for estilo in estilos %}
+            <tr>
+              <td>Estilo {{ forloop.counter }}</td>
+              <td><img src="{{ estilo.presigned_url }}" alt="Firma Estilo {{ forloop.counter }}" width="80"></td>
+              <td>{{ estilo.isFecha|yesno:"Sí,No" }}</td>
+              <td>{{ estilo.isNombre|yesno:"Sí,No" }}</td>
+              <td>{{ estilo.isUbicacion|yesno:"Sí,No" }}</td>
+              <td>
+                <button 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#exampleModal" 
+                  class="btn btn-danger btn-sm px-2"
+                  data-id="{{ estilo.id }}">
+                      <i class="fa-solid fa-trash">
+                          <img src="/static/icos/delete_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                      </i>
+                </button>
+              </td>
+              <td>
+                <input type="radio" name="estiloPredeterminado" value="{{ estilo.id }}" {% if estilo.is_predeterminado %}checked{% endif %}>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center">No hay estilos creados aún.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="d-grid">
+          <button class="btn btn-primary validateButton" type="button" onclick="guardarPredeterminado()">Guardar como Predeterminado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL CONSULTA ELIMINAR ESTILO -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Confirmación de acción</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <strong>¿Está seguro de que desea eliminar este estilo de forma permanente?</strong>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <a id="deleteButton" href="#" class="btn btn-danger">Eliminar Estilo</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- MODAL CONSULTA ELIMINAR ESTILO -->
+
+  <!-- OVERLAY -->
+  <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+    <div class="d-flex flex-column justify-content-center align-items-center h-100">
+        <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;"></div>
+        <span class="mt-2 text-light">CARGANDO...</span>
+    </div>
+  </div>
+  <!-- OVERLAY -->
+
+
+  <form method="POST" style="display: none;">
+    {% csrf_token %}
+  </form>
+  <script src="/static/assets/js/core/libs.min.js"></script>
+  <script src="/static/assets/js/hope-ui.js" defer></script>
+  <script>
+    function guardarPredeterminado() {
+        const seleccionado = document.querySelector('input[name="estiloPredeterminado"]:checked');
+        
+        if (seleccionado) {
+          const estiloId = seleccionado.value;
+      
+          // Crear un formulario dinámico
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = `/firma_agil/select_imagen/${estiloId}/`;  // URL donde se enviará el formulario
+      
+          // Agregar token CSRF
+          const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+          const csrfInput = document.createElement("input");
+          csrfInput.type = "hidden";
+          csrfInput.name = "csrfmiddlewaretoken";
+          csrfInput.value = csrfToken;
+          form.appendChild(csrfInput);
+      
+          // Agregar el ID del estilo como un campo oculto si deseas enviarlo en el cuerpo también
+          const idInput = document.createElement("input");
+          idInput.type = "hidden";
+          idInput.name = "estilo_id";
+          idInput.value = estiloId;
+          form.appendChild(idInput);
+      
+          // Agregar el formulario al documento y enviarlo
+          document.body.appendChild(form);
+          form.submit();
+        } else {
+          alert("Por favor selecciona un estilo como predeterminado.");
+        }
+      }
+      
+
+    function showToast(message, type) {
+        // Crear el contenedor del toast
+        var toastContainer = document.getElementById('liveToastContainer');
+        
+        // Crear el div del toast y configurarlo
+        var toastWrapper = document.createElement('div');
+        toastWrapper.className = `toast align-items-center text-bg-${type} border-0`;
+        toastWrapper.setAttribute('role', 'alert');
+        toastWrapper.setAttribute('aria-live', 'assertive');
+        toastWrapper.setAttribute('aria-atomic', 'true');
+        
+        // Añadir el contenido del toast
+        toastWrapper.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Agregar el toast al contenedor
+        toastContainer.appendChild(toastWrapper);
+    
+        // Inicializar el toast de Bootstrap y mostrarlo
+        var toast = new bootstrap.Toast(toastWrapper);
+        toast.show();
+    
+        // Remover el toast después de un tiempo
+        setTimeout(() => {
+            toastWrapper.remove();
+        }, 5000); // Ajusta el tiempo de visibilidad del toast
+    }
+
+
+  function eliminar_estilo(estiloID){
+    const myModal = document.getElementById('myModal')
+    myModal.show();
+  }
+
+  document.getElementById('firmaImagen').addEventListener("change", function(){
+    const file = this.files[0];
+    const inputImagen = document.getElementById("firmaImagen");
+    if(file){
+      const fileType = file.type;
+      if (fileType !== "image/jpeg"){
+        this.value = "";
+        showToast("Tipo de archivo no permitido. Cargue una imagen tipo JPG", "danger")
+      }
+    }
+  })
+
+                  // OVERLAY
+                  document.addEventListener("DOMContentLoaded", () => {
+                    if (sessionStorage.getItem("showOverlay") === "true") {
+                        document.getElementById("overlay").classList.add("d-none"); // Oculta el overlay
+                        sessionStorage.removeItem("showOverlay"); // Limpia el estado
+                    }
+                });
+        
+                document.querySelectorAll(".validateButton").forEach(button => {
+                    const form = document.getElementById("form_estilo");
+                    const overlay = document.getElementById("overlay");
+                    button.addEventListener("click", function() {
+                        if (form.checkValidity()) {
+
+                          document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                          sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+                        }else {
+                            // Si no es válido, muestra mensajes de error
+                          form.classList.add("was-validated");
+                        }
+                    });
+                });
+                // OVERLAY
+
+                // MODAL ELIMINAR ESTILO 
+                const exampleModal = document.getElementById('exampleModal');
+                exampleModal.addEventListener('show.bs.modal', event => {
+                  const button = event.relatedTarget;
+                  const estiloId = button.getAttribute('data-id');
+                  const deleteButton = document.getElementById('deleteButton');
+                  deleteButton.href = `/firma_agil/personalizar/eliminar_estilo/${estiloId}/`;
+                })
+                // MODAL ELIMINAR ESTILO
+    
+
+    
+  </script>
+  {% if messages %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                {% for message in messages %}
+                    showToast("{{ message }}", "{{ message.tags }}");
+                {% endfor %}
+            });
+        </script>
+    {% endif %}
+</body>
+</html>
+{% endblock %}

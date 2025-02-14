@@ -1,0 +1,84 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentos Firmados</title>
+    <link rel="stylesheet" href="/static/styles/signbox/doc_done.css">
+</head>
+<body>
+    <br>
+    <div class="container">
+        <div class="cajaContenedora">
+        <div class="container">
+            <div class="done">
+                <img src="/static/media/pngwing.com.png" alt="">
+                <p class="p_done">Documentos Firmados Exitosamente</p>
+            </div>
+            <br>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                    Documentos Firmados
+                </div>
+                <div class="card-body">
+                    <table id="datatablesSimple" class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Documento</th>
+                                <th>Tamaño Documento</th>
+                                <th>Previsualizador</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                            {% for data in resultados %}
+                            <tr>
+                                <td>{{data.0}}</td>
+                                <td>{{data.1}}</td>
+                                <td>{{data.2}}</td>
+                                <td>
+                                    <button class="btn btn-secondary" onclick="mostrar('{{data.1}}')">Ver</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+        <div class="box">
+            <form action={% url "sign" %} method="post">
+                {% csrf_token %}
+                <h3></h3>
+                <div class="box">
+                    <!-- <button type="submit" class="btn btn-dark">
+                        Firmar
+                    </button> -->
+                </div>
+            </form>
+            <p>{{ data }}</p>
+        </div>
+    </div>
+    <div class="overlay" id="overlay">
+        <div class="modal" id="modal">
+            <div id="contenedor"></div>
+          <!-- <img src="{% static "imagenes/Prueba_1.pdf.jpeg" %}" alt=""> -->
+          <div class="box">
+              <span class="btn btn-secondary" onclick="closeModal()">Cerrar</span>
+          </div>
+        </div>
+      </div>
+      <script src="/static/js/signbox/doc_done.js"></script>
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,60 @@
+Datos a ingresar al crear el flujo:
+- Correo
+- Nombres
+- Apellidos
+- Tipo de Firma
+- (Opcional) Orden del flujo
+
+Datos a ingresar de forma individual por firmante:
+- DPI
+- Celular
+- Dirección
+- Imagen Frontal
+- Imagen Lateral
+- Imagen de usuario con DPI a la altura del mentón
+
+Modelos:
+- Empresa (Rol administrador, quien vera el trabajo de todos los usuarios)
+- Usuario
+- Credenciales_CPJ
+- Credenciales_Billing (colocar cantidad y restante, para hacer el descuento debe ser en base a los envíos, 
+si la persona quiere recuperar esos creditos debe anular los envíos. esto con el fin de que no haga 100 envíos y solo tiene 15 creditos oneshot)
+- Flujo
+- Detalle_Flujo(colocar parametro booleado para conocer si es oneshot o con CLG)
+- Imagenes_Firmante (con id de la persona y logica para subir archivo)
+- Archivos_Firmante
+- 
+
+Ejemplo de creación de flujo desde el sistema hacia las aplicaciones:
+***VISTA EMPRESA***
+Empresa: XYZ Corp
+Usuarios:
+- [Agregar Usuario] [Editar Usuario] [Eliminar Usuario]
+  - Juan Pérez
+  - Ana López
+
+Licencias:
+- [Agregar Licencia] [Editar Licencia] [Eliminar Licencia]
+  - Licencia A (Usuario: Juan Pérez)
+  - Licencia B (Sin Usuario)
+
+***VISTA USUARIO***
+Usuario: Juan Pérez
+Empresa: XYZ Corp
+Licencias:
+- [Agregar Licencia] [Editar Licencia] [Eliminar Licencia]
+  - Licencia A
+
+
+
+Proceso:
+- Adaptar las vistas de creación de usaurios, empresa y licencias para asignar los requisitor para usar las aplicaciones
+- terminar las vistas para editar usuarios y asignar permisos.
+- crear los modelos de base de Datos
+- crear todos los permisos para flujo firma y su usuario administrador
+- funcionalidad de vista crear flujo
+- asociar información de imanges para solicitudes oneshot
+- vista para cargar documentos
+. completar vista para indicar donde debe firmar cada persona
+
+

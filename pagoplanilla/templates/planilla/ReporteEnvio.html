@@ -1,0 +1,253 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Empresas</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #ededed;
+        }
+        
+        .table_outer {
+            padding: 20px 0;
+        }
+        
+        table td,
+        table th {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .card {
+            border-radius: .5rem;
+        }
+        /* OVERLAY */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: #ffffff;
+        }
+        /* OVERLAY */
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY -->
+    <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">CARGANDO...</span>
+            </div>
+        </div>
+    </div>
+    <!-- OVERLAY -->
+    
+    <div class="container mt-4">
+        
+        <div class="mb-4">
+            <a href="/planilla/reportes/" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Regresar
+            </a>
+        </div>
+
+        <!-- Sección superior -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Reporte: {{ NombreEnvio.NombreEnvio }}</h2>
+            <h5>{{ FilesSigned }} Documentos Firmados de {{ NombreEnvio.TotalEnvios }}</h5>
+            <!-- <a class="btn btn-primary" href="/planilla/crearEmpresa">Crear Empresa</a> -->
+        </div>
+
+        <!-- Filtros de búsqueda -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Filtros de Búsqueda</h5>
+                <form id="filtros-form" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="nombreEmpresa" class="form-label">Nombre Receptor</label>
+                            <input value="{{ FiltroReceptor }}" type="text" class="form-control" id="nombreEmpresa" name="nombreReceptor" placeholder="Nombre Receptor">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha de Firma: Desde</label>
+                            <input value="{{ FiltroDesde }}" type="date" class="form-control" id="fechaRegistroDesde" name="fechaRegistroDesde">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha de Firma: Hasta</label>
+                            <input value="{{ FiltroHasta }}" type="date" class="form-control" id="fechaRegistro" name="fechaRegistroHasta">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="selectStatus" class="form-label">Status</label>
+                            <select name="selectStatus" id="selectStatus" class="form-select" aria-label="Default select example">
+                                <option {% if FiltroStatus == 'none' %} selected {% endif %}>Seleccionar</option>
+                                <option value="Firmado" {% if FiltroStatus == 'Firmado' %} selected {% endif %} >Firmado</option>
+                                <option value="Pendiente de Firma" {% if FiltroStatus == 'Pendiente de Firma' %} selected {% endif %} >No Firmado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- <div class="col-md-4 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha de Registro: Desde</label>
+                            <input type="date" class="form-control" id="fechaRegistroDesde" name="fechaRegistroDesde">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha de Registro: Hasta</label>
+                            <input type="date" class="form-control" id="fechaRegistro" name="fechaRegistroHasta">
+                        </div> -->
+                        <!-- <div class="col-md-4 mb-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-select" id="estado" name="estado">
+                                <option value="">Todos</option>
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                            </select>
+                        </div> -->
+                    </div>
+                    <button type="button" onclick="filtrar('{{ TokenAuth }}')" class="btn btn-secondary">Buscar</button>
+                    <a href="/planilla/envio/{{TokenAuth}}" type="submit" class="btn btn-danger">Resetear Filtros</a>
+                    <button type="button" onclick="generarReporte('{{ TokenAuth }}')" class="btn btn-dark">Descargar Reporte</button>
+                    <button type="button" onclick="reenviarCorreo('{{ TokenAuth }}')" class="btn btn-dark">Reenviar</button>
+                    <button type="button" onclick="descargarArchivos('{{ TokenAuth }}')" class="btn btn-dark"{% if FilesSigned == 0 %} disabled {% endif %} >Descargar ZIP</button>
+                </form>
+                {% if FilesSigned == 0 %}
+                    <label style="font-size: 13px;" for=""><strong>*El botón de descarga se habilitará únicamente cuando se haya firmado al menos un archivo.</strong></label>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Resultados de la búsqueda -->
+        <div id="resultados">
+            <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+            <section class="table_outer">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-12">
+                            <div class="card border-0 shadow">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0 ">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th scope="col">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" value=""
+                                                                id="select_all" />
+                                                        </div>
+                                                    </th>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">NOMBRE</th>
+                                                    <th scope="col">EMAIL</th>
+                                                    <th scope="col">FECHA ENVIO</th>
+                                                    <th scope="col">FECHA FIRMA</th>
+                                                    <th scope="col">STATUS</th>
+                                                    <th scope="col">ACCIÓN</th>
+                                                </tr>
+                                            </thead>
+                                            {% for data in Envio %}
+                                            <tbody>
+                                                <tr>
+                                                    <th scope="row">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input checkbox" data-id="{{ data.id }}" type="checkbox" value=""
+                                                                id="flexCheckDefault1" />
+                                                        </div>
+                                                    </th>
+                                                    <td>{{ forloop.counter }}</td>
+                                                    <td>{{ data.nombre }}</td>
+                                                    <td>{{ data.idUsuario.Email }}</td>
+                                                    <td>{{ data.fechaEnvio }}</td>
+                                                    {% if data.status == "Pendiente de Firma" %}
+                                                        <td>{{ data.status }}</td>
+                                                    {% else %}
+                                                        <td>{{ data.fechaFirma }}</td>
+                                                    {% endif %}
+                                                    <td>{{ data.status}}</td>
+                                                    <td>
+                                                        <!-- <button type="button"  class="btn btn-success btn-sm px-2">
+                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                        </button> -->
+                                                        <a href="/planilla/signDocs/{{ data.tokenAuthLista }}/{{ data.idUsuario.id }}/{{ data.token }}" type="button" class="btn btn-primary btn-sm px-2 validateButton">
+                                                            <i id="deletei" class="fa-solid fa-eye"></i>
+                                                        </a>
+                                                        <!-- <button type="button" class="btn btn-danger btn-sm px-2">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button> -->
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                            {% endfor %}
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <script>
+        // OVERLAY
+        document.addEventListener("DOMContentLoaded", () => {
+            if (sessionStorage.getItem("showOverlay") === "true") {
+                document.getElementById("overlay").classList.add("d-none"); // Oculta el overlay
+                sessionStorage.removeItem("showOverlay"); // Limpia el estado
+            }
+        });
+    
+        document.querySelectorAll(".validateButton").forEach(button => {
+            button.addEventListener("click", function() {
+                document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+            });
+        });
+        // OVERLAY
+
+        // TABLA CON SELECTORES
+        $(document).ready(function () {
+            $('#select_all').click(function () {
+                if ($(this).is(':checked')) {
+                    $('.checkbox').prop('checked', true);
+                } else {
+                    $('.checkbox').prop('checked', false);
+                }
+            });
+        
+            $('.checkbox').click(function () {
+                if ($('.checkbox:checked').length === $('.checkbox').length) {
+                    $('#select_all').prop('checked', true);
+                } else {
+                    $('#select_all').prop('checked', false);
+                }
+            });
+        });
+        // TABLA CON SELECTORES
+
+
+    </script>
+    <script src="/static/js/planilla/ReporteEnvio.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{% endblock %}

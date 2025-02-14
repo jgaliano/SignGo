@@ -1,0 +1,405 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign</title>
+    <link rel="stylesheet" href="/static/styles/signbox/sign.css">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* OVERLAY */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: #ffffff;
+        }
+        /* OVERLAY */
+        
+    </style>
+</head>
+    <body>
+
+    <!-- OVERLAY -->
+        <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+            <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;"></div>
+                <span class="mt-2 text-light">FIRMANDO...</span>
+            </div>
+        </div>
+    <!-- OVERLAY -->
+
+    <!-- MESSAGES -->
+        {% if messages %}
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                {% for message in messages %}
+                    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+                        <div class="toast-header" style="color: white; background-color:{% if 'danger' in message.tags %}red{% elif 'success' in message.tags %}green{% elif 'warning' in message.tags %}orange{% else %}red{% endif %}">
+                            <strong class="me-auto">{% if 'danger' in message.tags %}Error{% endif %}</strong>
+                            <small></small>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+              
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+                    const toastList = toastElList.map(function (toastEl) {
+                        return new bootstrap.Toast(toastEl, { autohide: false });
+                    });
+                    toastList.forEach(toast => toast.show());
+                });
+            </script>      
+        {% endif %}
+    <!-- MESSAGES -->
+
+
+        <div class="container mt-5">
+            <div id="liveAlertPlaceholder"></div>
+            <div class="d-flex justify-content-center align-items-center mb-4">
+                <h2>Solicitud de Firma Electrónica</h2>
+            </div>
+            <div class="card shadow-sm p-4 mb-4 bg-white rounded">
+                <div class="d-flex align-items-center">
+                    <div class="icon-container" style="font-size: 2rem; color: #007bff; margin-right: 15px;">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <div>
+                        <h5 class="m-0">Firmante:</h5>
+                        <p class="text-muted m-0">{{ firmante.nombres}} {{ firmante.apellidos }}</p>
+                    </div>
+                </div>
+            </div>
+                <div id="resultados">
+                    <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+                    <div class="mb-3">
+                        
+                    </div>
+                    <section class="table_outer">
+                        <div class="container">
+                            
+                            <div class="row justify-content-center">
+                                <div class="col-12">
+                                    <div class="card border-0 shadow">
+                                        <div class="card-body">
+                                            <h5 class="m-0">Documentos a Firmar:</h5><br>
+                                            <div class="table-responsive">
+                                                <table class="table table-hover mb-0 ">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <!-- <th scope="col">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" value=""
+                                                                        id="select_all" />
+                                                                </div>
+                                                            </th> -->
+                                                            <th scope="col">#</th>
+                                                            <th scope="col">NOMBRE DOCUMENTO</th>
+                                                            <th scope="col">ACCIÓN</th>
+                                                        </tr>
+                                                    </thead>
+                                                    {% for data in documentos %}
+                                                    <tbody>
+                                                        <tr>
+                                                            <!-- <th scope="row">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input checkbox" type="checkbox" value=""
+                                                                        id="flexCheckDefault1" />
+                                                                </div>
+                                                            </th> -->
+                                                            <td>{{ forloop.counter }}</td>
+                                                            <td>{{ data.0 }}</td>
+                                                            <td>
+                                                                <button class="btn btn-dark" onclick="mostrar('{{data.0}}', '{{ data.2 }}')" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver</button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                    {% endfor %}
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="card shadow-sm p-4 mb-4 bg-white rounded">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-container" style="font-size: 2rem; color: #007bff; margin-right: 15px;">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <div>
+                            <h5 class="m-0">Importante:</h5>
+                            <p class="text-muted m-0">Para proceder con la firma de los documentos, 
+                                es necesario generar un código de seguridad OTP (One Time Password).</p>
+                        </div>
+                        <!-- Puede elegir recibir 
+                                este código a través de un mensaje SMS en su dispositivo móvil o mediante la 
+                                aplicación WhatsApp. -->
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-center">
+                            <p class="text-muted m-0">Selecciones una opción:</p>
+                        </div>
+                        <div class="d-flex justify-content-center gap-2 mt-2">
+                            {% csrf_token %}
+                            <button style="width: auto;" onclick="get_token()" class="btn btn-dark validateButton">WhatsApp</button>
+                            <!-- <button class="btn btn-dark validateButton">SMS</button> -->
+                        </div>
+                        
+                    </div>
+                </div>
+                
+
+                <div class="d-flex justify-content-center" style="gap: 1%;">
+                    <button id="button_siguiente" type="button" class="btn btn-primary disabled" data-bs-toggle="modal" data-bs-target="#exampleModal2">
+                        Ingresar Código
+                    </button>            
+                </div>
+            </div>  
+
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">DemoFirma</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="contenedor" class="modal-body" style="height: 80vh;"></div>
+                <div class="modal-footer">
+                    <div id="buttonDownload"></div>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ingrese Credenciales de Firma</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="" method="post" >
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Usuario</label>
+                        <input value="1108124" name="inputUsuario" placeholder="Ingrese Usuario" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" required>
+                      </div>
+                      <div class="mb-3">
+                        <label for="exampleInputPassword2" class="form-label">Contraseña</label>
+                        <input value="29yqdGGw" name="inputContraseña" placeholder="Ingrese Contraeña" type="password" class="form-control" id="exampleInputPassword2" required>
+                      </div>
+                      <div class="mb-3">
+                          <label for="exampleInputPassword1" class="form-label">Codigo PIN</label>
+                          <input value="belorado74" name="inputPin" placeholder="Ingrese PIN" type="password" class="form-control" id="exampleInputPassword1" required>
+                      </div>
+
+                    <!-- <div class="form-check mb-3">
+                        <input {% if isChecked %} checked {% endif %} class="form-check-input" type="checkbox" id="rememberCredentials" name="rememberCredentials">
+                        <label class="form-check-label" for="rememberCredentials">
+                            Recordar credenciales (Usuario y Contraseña)
+                        </label>
+                    </div> -->
+
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-success validateButton">Firmar</button>
+                    </div>
+                  </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+            </div>
+        </div>
+        </div>        
+
+
+        <div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel2">Ingrese Código de Seguridad</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{% url 'firmar_documento_oneshot' tokenFirmante %}" method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="inputToken" class="form-label">Ingrese Código</label>
+                                <input name="inputToken" placeholder="Ingrese Código" type="number" class="form-control" id="inputToken" aria-describedby="emailHelp" required>
+                            </div>
+                            <div class="d-flex justify-content-center">
+                                <button type="submit" class="btn btn-success validateButton2" data-bs-dismiss="modal" aria-label="Close">Firmar</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>    
+
+        
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.min.js"></script>
+     <script src="/static/js/signbox/sign.js"></script>
+    </body>
+    <script>
+
+        function mostrar(data, carpeta) {
+            var caja = document.getElementById('contenedor');
+            var divButton = document.getElementById('buttonDownload');
+            caja.innerHTML = ''; 
+            divButton.innerHTML = ''
+        
+            // Construye la URL del archivo PDF
+            var pdfUrl = carpeta
+        
+            // Detecta si el navegador está en un dispositivo móvil
+            var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+            if (!isMobile) {
+                // Opción 1: Para navegadores de escritorio, usar el elemento <object>
+                var object = document.createElement('object');
+                object.data = pdfUrl;
+                object.type = "application/pdf";
+                caja.appendChild(object);
+            } else {
+
+                var createButton = document.createElement('a');
+                createButton.innerText = 'Descargar PDF';
+                createButton.href = pdfUrl
+                createButton.classList.add('btn', 'btn-dark'); // Añade múltiples clases
+                divButton.appendChild(createButton);
+
+                // Opción 2: Para dispositivos móviles, usar PDF.js para renderizar en un <canvas>
+                var canvas = document.createElement('canvas');
+                canvas.id = "pdf-canvas";
+                caja.appendChild(canvas);
+        
+                // Inicializa PDF.js y carga el archivo PDF
+                var pdfjsLib = window['pdfjs-dist/build/pdf'];
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.worker.min.js';
+        
+                pdfjsLib.getDocument(pdfUrl).promise.then(function(pdfDoc) {
+                    pdfDoc.getPage(1).then(function(page) {
+                        var scale = calculateScale();  // Escala del PDF
+                        var viewport = page.getViewport({ scale: scale });
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+        
+                        var renderContext = {
+                            canvasContext: canvas.getContext('2d'),
+                            viewport: viewport
+                        };
+                        page.render(renderContext);
+                    });
+                }).catch(function(error) {
+                    console.error("Error al cargar el PDF: ", error);
+                    caja.innerHTML = "<p>Error al cargar el documento PDF.</p>";
+                });
+            }
+        }
+
+        // OVERLAY
+        document.addEventListener("DOMContentLoaded", () => {
+            if (sessionStorage.getItem("showOverlay") === "true") {
+                document.getElementById("overlay").classList.add("d-none"); // Oculta el overlay
+                sessionStorage.removeItem("showOverlay"); // Limpia el estado
+            }
+        });
+
+        document.querySelectorAll(".validateButton").forEach(button => {
+            button.addEventListener("click", function() {
+                var miModal = document.getElementById('exampleModal1')
+                miModal.style.display = "None"
+                document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+            });
+        });
+
+        document.querySelectorAll(".validateButton2").forEach(button => {
+            button.addEventListener("click", function() {
+                var miModal = document.getElementById('exampleModal2')
+                miModal.style.display = "None"
+                document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+            });
+        });
+
+        // OVERLAY
+
+        // REQUEST GET TOKEN
+        function get_token(){
+            const requestValue = {{ TokenRequest }}
+
+            const data = {
+                "request": requestValue,
+                "method": "wsp"
+            }
+
+            fetch('/flujo_firma/get_token/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(responseData => {
+                // HIDE OVERLAY
+                document.getElementById("overlay").classList.add("d-none");
+                sessionStorage.removeItem("showOverlay");
+
+                // HABILITAR BUTTON
+                document.getElementById("button_siguiente").classList.remove("disabled")
+
+                // SHOW MODAL2
+                var modalElement = document.getElementById('exampleModal2');
+                var modalInstance = new bootstrap.Modal(modalElement);
+                modalInstance.show();
+
+            })
+            .catch(error => {
+                document.getElementById("overlay").classList.add("d-none");
+                sessionStorage.removeItem("showOverlay");
+                alert('Error 500')
+            });
+        }
+        // REQUEST GET TOKEN
+        
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+    </script>
+</html>
+{% endblock %}

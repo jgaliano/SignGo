@@ -1,0 +1,121 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envíos</title>
+    <style>
+        *{
+            font-family: system-ui;
+        }
+
+        /* OVERLAY */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: #ffffff;
+        }
+        /* OVERLAY */
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY -->
+    <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">CARGANDO...</span>
+            </div>
+        </div>
+    </div>
+    <!-- OVERLAY -->
+
+    <div id="liveAlertPlaceholder"></div>
+    <div class="d-flex justify-content-center">
+        <h1>Generar Envío</h1>
+    </div>
+    <div>
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for=""><strong>Ingrese Nombre de Envío Masivo</strong></label>
+                <input name="nameEnvio" type="text" id="nombre-lista" class="form-control" placeholder="Ingrese Nombre de Envío Masivo" required>
+                <label for="inputAsunto"><strong>Ingrese Asunto de Correo</strong></label>
+                <input class="form-control" name="inputAsunto" id="inputAsunto" type="text" required placeholder="Ingrese Asunto de Correo">
+            </div>
+
+            <label for=""><strong>Seleccionar Lista de Contactos</strong></label>
+            <select name="selectContacto" class="form-select" aria-label="Default select example" required>
+                <option selected>Seleecionar</option>
+                {% for contacto in contactos %}
+                    <option value="{{ contacto.id }}">{{ contacto.nombre }}</option>
+                {% endfor %}
+            </select>
+            <label for=""><strong>Seleccionar Plantilla de Documento</strong></label>  
+            <select name="selectPlantilla" class="form-select" aria-label="Default select example" required>
+                <option selected>Seleccionar</option>
+                {% for plantilla in plantillas %}
+                    <option value="{{ plantilla.id }}">{{ plantilla.Nombre }}</option>
+                {% endfor %}
+            </select><br>
+            <div class="d-flex justify-content-center">
+                <button class="btn btn-dark validateButton" type="submit">Generar y Enviar</button>
+            </div>
+        </form>
+    </div>
+    <script>
+
+        function showAlert(message, type) {
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible" role="alert">'
+                + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+            document.getElementById('liveAlertPlaceholder').append(wrapper);
+
+            setTimeout(() => {
+                wrapper.querySelector('.alert').classList.add('alert-fadeout');
+                setTimeout(() => {
+                    wrapper.remove();
+                }, 10000);
+            }, 10000);
+        }
+
+        {% if messages %}
+            {% for message in messages %}
+                showAlert("{{ message }}", "{{ message.tags }}");
+            {% endfor %}
+        {% endif %}
+
+        // OVERLAY
+        document.addEventListener("DOMContentLoaded", () => {
+            if (sessionStorage.getItem("showOverlay") === "true") {
+                document.getElementById("overlay").classList.add("d-none"); // Oculta el overlay
+                sessionStorage.removeItem("showOverlay"); // Limpia el estado
+            }
+        });
+    
+        document.querySelectorAll(".validateButton").forEach(button => {
+            button.addEventListener("click", function() {
+                document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+            });
+        });
+        // OVERLAY
+    </script>
+</body>
+</html>
+{% endblock %}

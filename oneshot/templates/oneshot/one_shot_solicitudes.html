@@ -1,0 +1,135 @@
+{% extends 'app_base.html' %}
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="/static/styles/oneshot/one_shot_solicitudes.css">
+<body>
+    <div class="container">
+        <h2 class="display-5 mb-5 text-center">Historial de Solicitudes OneShot</h2>
+        <form action={% url "oneShot_solicitudes" %} class="row g-3" method="post" id="formulario">
+            {% csrf_token %}
+            <div class="col-md-4">
+                <label for="inputName" class="form-label">Primer Nombre</label>
+                <input type="text" class="form-control" id="inputName" name="inputName">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Segundo Nombre</label>
+                <input type="text" class="form-control" id="inputSecondName" name="inputSecondName">
+                </div>
+            <div class="col-md-4">
+                <label for="inputApellido1" class="form-label">Primer Apellido</label>
+                <input type="text" class="form-control" id="inputApellido1" name="inputApellido1">
+            </div>
+            <div class="col-md-4">
+                <label for="inputApellido2" class="form-label">Segundo Apellido</label>
+                <input type="text" class="form-control" id="inputApellido2" name="inputApellido2">
+            </div>
+            <div class="col-md-4">
+                <label for="inputDPI" class="form-label">DPI</label>
+                <input type="text" class="form-control" id="inputDPI" name="inputDPI">
+            </div>
+            <div class="col-md-4">
+                <label for="inputEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="inputEmail" name="inputEmail">
+            </div>
+            <div class="col-md-4">
+                <label for="fechaIn" class="form-label">Fecha Inicio</label>
+                <input type="date" class="form-control" id="fechaIn" name="fechaIn">
+            </div>
+            <div class="col-md-4">
+                <label for="fechaEnd" class="form-label">Fecha Fin</label>
+                <input type="date" class="form-control" id="fechaEnd" name="fechaEnd">
+            </div>
+            <div class="col-md-4">
+                <label for="" class="form-label">Estatus de solicitudes</label>
+                <select name="estatus_docs" id="documentos" class="form-select">
+                    <option></option>
+                    <option value="Firmados">Documentos Firmados</option>
+                    <option value="NoFirmados">Pendientes por Firmar</option>
+                </select>
+            </div>
+            <div class="encabezado">
+                <button type="submit" class="btn btn-dark">Buscar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3 style="font-size: 20px;">Resultado de Busqueda</h3>
+            </div>
+            <div class="card-body">
+                <table class="table card-table table-modern">
+                    <thead>
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Fecha</th>
+                            <th>Video ID</th>
+                            <th>Firma</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in solicitudes %}
+                        <tr>
+                            <td>{{ solicitud.primer_nombre }} {{ solicitud.segundo_nombre }} {{ solicitud.primer_apellido }} {{ solicitud.segundo_apellido }}</td>
+                            <td>{{ solicitud.fecha|date:"d M Y H:i" }}</td>
+                            <td><span class="badge">{{ solicitud.tipo }}</span></td>
+                            <td><span class="badge">{{ solicitud.status }}</span></td>
+                            <form action={% url "busquedaOperados" solicitud.id %} method="get">
+                                {% csrf_token %}
+                                <td>
+                                    <button type="submit" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver Solicitud</button>
+                                </td>
+                            </form>                            
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="data">  
+        {% for data in resultados %}
+        <div class="card w-75 mb-3">
+            <div class="card-body">
+              <h5 class="card-title">{{data.0}}</h5>
+              <p>Fecha: {{ data.3 }}</p>
+              <p class="texto card-text">{{ data.1 }}</p>
+              <form action={% url "busquedaOperados" %} method="post" id="informaciónUser">
+                  {% csrf_token %}
+                  <input style="display: none;" type="text" value="{{data.2}}" name="docOperados">
+                  <button type="submit" class="btn btn-dark">Verificar</button>
+              </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div> -->
+    <script src="/static/js/oneshot/one_shot_solicitudes.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const badges = document.querySelectorAll('.badge');
+        
+            badges.forEach(badge => {
+                switch (badge.textContent.trim()) {
+                    case 'Firmado':
+                        badge.classList.add('badge-success');
+                        break;
+                    case 'No Firmado':
+                        badge.classList.add('badge-danger');
+                        break;
+                    case 'Con Video ID':
+                        badge.classList.add('badge-primary');
+                        break;
+                    default:
+                        badge.classList.add('badge-secondary');
+                        break;
+                }
+            });
+        });
+    </script>
+</body>
+{% endblock %}

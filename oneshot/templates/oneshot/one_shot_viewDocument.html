@@ -1,0 +1,21 @@
+{% extends 'app_base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previsualización de Archivo</title>
+    <link rel="stylesheet" href="/static/styles/oneshot/one_shot_viewDocument.css">
+</head>
+<body>
+    <div class="box_central_pdf">
+        <div class="done_pdf">
+            <img src="/static/img/oneshot/success.png" alt=""><br>
+            <p class="p_done">Documentos Cargados Exitosamente</p>
+            <p class="p_texto">Se ha enviado un correo a {{ nombre }} a la dirección: {{ correo }} para la verificación y firma de los documentos.</p>
+        </div>
+    </div>
+</body>
+</html>
+{% endblock %}

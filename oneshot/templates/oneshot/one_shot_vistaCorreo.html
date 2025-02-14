@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/styles/oneshot/one_shot_vistaCorreo.css">
+</head>
+<body>
+    <!-- one_shot_vistaCorreo.html -->
+    <div class="box_1">
+        <div class="box_1_responsive"> 
+            <h1>{{ username }}</h1>
+            <p>A continuación le mostramos los documentos que debe revisar y firmar</p>
+        </div>
+    </div>
+    <div class="container">
+        <br>
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-table me-1"></i>
+                Documentos
+            </div>
+            <div class="card-body">
+                <table id="datatablesSimple" class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre Documento</th>
+                            <th>Tamaño Documento</th>
+                            <th>Revisar</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                        </tr>
+                    </tfoot>
+                    <tbody>
+                        {% for data in resultados %}
+                        <tr>
+                            <td>{{data.0}}</td>
+                            <td>{{data.1}}</td>
+                            <td>{{data.2}}</td>
+                            <td>
+                                <button class="btn btn-secondary" onclick="mostrar('{{data.1}}')" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">DemoFirma</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="contenedor" class="modal-body" style="height: 80vh;"></div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+
+    </div><br>
+    <div class="box_2">
+        <p>Para firmar los documentos debe generar su codigo de seguridad. Puede optar por recibirlo a través de SMS en su dispositivo móvil o mediante WhatsApp.</p>
+        <p> Seleccione una de las dos opciones: </p>
+    </div><br>
+    <div class="token_box">
+        <div class="token">
+            <!-- <button class="btn btn-success" onclick="semdOTP('{{ request }}')"> -->
+            <button class="btn btn-success" id="boton-peticion">                
+                <i class="fa-brands fa-whatsapp"></i> Whatsapp
+            </button>
+            <button class="btn btn-success" id="boton-peticion2">
+                <i class="fa-solid fa-comment-sms"></i> SMS
+            </button><br>
+        </div>
+    </div><br>
+    <div class="token_box" style="margin-right: 15px;">
+        <p id="con_codigo">Codigo Enviado</p>
+        <button id="btn_ingresar" class="btn btn-dark" onclick="mostrarModal()">Ingresar Codigo</button>
+    </div>
+
+
+    <!-- <div class="overlay" id="overlay">
+        <div class="modal" id="modal">
+            <div id="contenedor"></div>
+          <div class="login">
+              <span class="btn btn-secondary" onclick="closeModal()">Cerrar</span>
+          </div>
+        </div>
+    </div> -->
+
+
+    <br>
+        <div class="overlay2" id="overlay2">
+            <div class="modal2" id="modal2">
+                <form action={% url "one_shot_sign" %} method="post">
+                    {% csrf_token %}
+                <div id="contenedor2">
+                    <div class="login">
+                        <h3>Ingresar codigo</h3>
+                    </div><br>
+                    <div class="token_box">
+                        <p id="codigoError" style="background-color: rgba(255, 255, 255, 0.884); color: rgb(255, 0, 0); font-size: 15px;">Codigo incorrecto, ingreselo nuevamente</p>
+                        <div class="mb-3">
+                            <label class="form-label">Codigo: </label>
+                            <input id="codigo" name="codigo"  type="number" class="form-control" placeholder="Ingrese codigo" required>
+                        </div>
+                    </div>
+                </div><br>
+                <div id="btns_envio" class="box">
+                    <button onclick="mostrarSpinner()" type="submit" id="button1" type="submit" class="btn btn-success">Firmar</button>   
+                    <span id="button2" class="btn btn-danger" onclick="closeModal2()" style="margin-left: 10px;">Cancelar</span>
+                </div><br>
+                <div id="token_box" class="token_box">
+                    <!-- <div id="no_envio" class="etiqueta_p">
+                        <p>Si no recibe el codigo en </p><p id="countdown" style="margin-left: 3px;">10</p><p>s, reenvíe el codigo</p>
+                        <p>Si no recibe el codigo en 60s, reenvíe el codigo</p>
+                    </div>
+                    <div id="si_envio">
+                        <p>Puede reenvíar el codigo</p>
+                    </div>  -->
+                    <br>
+                </div>
+                <div>
+                </div> 
+                </form>
+                <div id="token_box2" class="token_box">
+                    <button class="btn btn-dark" onclick="semdOTP('{{ request }}')">
+                        Reenviar
+                    </button>
+                </div>
+            </div>
+        </div> -->
+        <p id="prueba"></p>
+        <div id="spinner" class="spinner hidden"></div>
+        <p id="estado_firma">{{ status }}</p>
+
+        
+        <script>
+            document.getElementById('boton-peticion').addEventListener('click', function() {
+                var numero = "{{ request }}";
+                
+                console.log(numero)
+                console.log("Enviado")
+        
+                var url = '{% url "sendOtp" %}?numero=' + numero;
+            
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+        
+                document.getElementById('con_codigo').style.display = 'block'
+                document.getElementById('btn_ingresar').style.display = 'block'
+        
+                xhr.send();
+            });
+        </script>
+        <script src="/static/js/oneshot/one_shot_vistaCorreo.js"></script>
+        <script src="https://kit.fontawesome.com/61ce3d268e.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>     
+</body>
+</html>

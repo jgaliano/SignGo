@@ -1,0 +1,112 @@
+.dropzone-btn {
+    background-color: #000000; /* Color de fondo del botón */
+    color: rgb(255, 255, 255); /* Color del texto del botón */
+    padding: 5px 10px; /* Relleno del botón */
+    border: none; /* Sin borde */
+    border-radius: 15px; /* Borde redondeado */
+    cursor: pointer;
+    width: 120px;
+    height: 45px;
+
+  }
+
+  .dropzone-btn:hover {
+    background-color: #7a7a7a; /* Color de fondo al pasar el ratón */
+  }
+  p{
+      background-color: #ffffff;
+  }
+  button{
+      margin-top: 15px;
+      background-color: #ffffff;
+      width: 850px;
+      height: 350px;
+      border-radius: 50px;
+  }
+  .box{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: rgb(255, 255, 255);
+      margin-left: 100px;
+  }
+  .box_2{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: rgb(255, 255, 255);
+      margin-left: 1px;
+  }
+  i{
+      font-size: 75px;
+  }
+  .mensaje{
+      background-color: rgb(255, 255, 255);
+      font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+      font-size: 18px;
+  }
+  /* styles.css (o tu archivo de estilos) */
+
+/* Estilo para cada archivo cargado */
+.dz-preview {
+  width: 0px;
+  height: 0px;
+  margin: 0px 0; /* Ajusta el margen entre cada archivo */
+  background-color: #ffffff;
+}
+
+.dz-details, .dz-size, .dz-filename {
+  display: block;
+  background-color: #ffffff;
+}
+
+/* Estilo para la miniatura (puedes ajustar según tus necesidades) */
+.dz-image img {
+  display: none;
+}
+
+/* Estilo para la información del archivo */
+.dz-details {
+  text-align: center; /* Alinea la información del archivo al centro */
+}
+
+/* Estilo para el nombre del archivo */
+.dz-filename {
+  font-weight: bold;
+  display: none;
+}
+
+/* Estilo para el tamaño del archivo */
+.dz-size {
+  font-size: 0px;
+}
+
+.dz-success-mark, .dz-error-mark {
+  display: none;
+}
+
+.dz-default.dz-messag{
+  color: red;
+  display: block;
+  padding: 500px;
+}
+#myModal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 55%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  background-color: rgb(255, 255, 255);
+  z-index: 1;
+  border: 1px solid #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  height: 150px;
+  width: 300px;
+}
+.titulo{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

@@ -1,0 +1,33 @@
+.box{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.contenedor{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.box{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 150px;
+    height: 50px;
+    background-color: rgb(0, 119, 255);
+    border-radius: 10px;
+}
+.box a{
+    text-align: center;
+    color: white;
+    text-decoration: none;
+}
+.box_2{
+    margin-top: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+button{
+    background-color: rgb(0, 119, 255);
+}

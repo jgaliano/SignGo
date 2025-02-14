@@ -1,0 +1,210 @@
+{% extends 'app_base.html' %}
+{% block content %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<style>
+    .box{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .contenedor{
+        padding-top: 3%;
+    }
+    h1{
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    #btn_enviar{
+        width: 150px;
+    }
+    .btn{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .editar{
+        text-decoration: none;
+        background-color: rgb(0, 118, 253);
+        color: rgb(255, 255, 255);
+        height: 50px;
+        width: 150px;
+    }
+    .target{
+        display: flex;
+        flex-direction: row;
+    }
+    .ml-auto{
+        display: flex;
+        flex-direction: row;
+        height: 40px;
+        margin-top: 15px;
+    }
+    div[name="mensaje"]{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: auto;
+    }
+    .contenedorTarget{
+        margin: 0%;
+    }
+    .colorStatus{
+        background-color: green;
+    }
+    .sectionCredenciales{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .card-table th {
+        background-color: #6c757d;
+        color: white;
+        text-align: center;
+    }
+    .card-table td, .card-table th {
+        border: none;
+    }
+    .card-table td {
+        text-align: center;
+        vertical-align: middle;
+    }
+    .table-modern tbody tr {
+        background-color: #f8f9fa;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    .table-modern td {
+        padding: 15px;
+    }
+    .contenedor{
+        margin-left: 10%;
+        margin-right: 10%;
+    }
+    .encabezado{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .data{
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    #showName{
+        font-size: 18px;
+        color: rgb(0, 115, 192);
+    }
+    
+</style>
+<body>
+    <br>
+    <div class="box">
+        <h2 class="display-5 mb-5 text-center">Administrar Usuarios</h2>
+    </div>
+    <div class="contenedor">
+        <form action="{% url 'crear_usuario' %}" class="row g-3" method="post" id="formulario">
+            {% csrf_token %}
+            <div class="col-md-6">
+                <label for="username" class="form-label">Nombre de usuario:</label>
+                <input required type="text" id="username" name="username"  class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label for="email" class="form-label">Correo electrónico:</label>
+                <input type="email" id="email" name="email" required class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label for="password" class="form-label">Contraseña:</label>
+                <input type="password" id="password" name="password" required class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label for="password2" class="form-label">Confirmar Contraseña:</label>
+                <input type="password" id="password2" name="password2" required class="form-control">
+            </div>
+            <div class="col-md-"6>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_superuser" name="is_superuser">
+                    <label class="form-check-label" for="is_superuser">
+                        Superusuario
+                    </label>
+                </div>
+            </div>
+            <div name="mensaje" id="mensaje"></div>
+            <div class="btn">
+                <!-- <button id="btn_enviar" type="button" class="btn btn-dark">Crear Usuario</button> -->
+                <button id="btn_enviar" type="submit" class="btn btn-dark">Crear Usuario</button>
+            </div>
+        </form>
+    </div>    
+   
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3>Usuarios existentes</h3>
+            </div>
+            <div class="card-body">
+                <table class="table card-table table-modern">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Permisos</th>
+                            <th>Activo</th>
+                            <th>Editar</th>
+                            <th>Eliminar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr>
+                            <td>{{forloop.counter}}</td>
+                            <td>{{usuario.username}}</td>
+                            <td>{{usuario.email}}</td>
+                            <td>{% if usuario.is_superuser %}Superusuario{% else %}Usuario{% endif %}</td>
+                            <td>{{usuario.is_active}}</td>
+                            <td><a class="btn btn-warning" href="{% url 'editar_usuario' usuario.id %}"><span class="material-symbols-outlined">edit</span></a></td>
+                            <td><a class="btn btn-danger" href="{% url 'eliminar_usuario' usuario.id %}"><span class="material-symbols-outlined">delete</span></a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('btn_enviar').addEventListener('click', function() {
+            var password = document.getElementById('password').value;
+            var password2 = document.getElementById('password2').value;
+
+            if (password !== password2) {
+                document.getElementById('mensaje').innerHTML = 'Las contraseñas no coinciden. Por favor, verifique.';
+                document.getElementById('mensaje').style.color = 'red';
+            } else {
+                document.getElementById('mensaje').innerHTML = '';
+                document.getElementById('formulario').submit(); // Envía el formulario si las contraseñas coinciden
+            }
+        });
+
+        function eliminarUsuario(usuarioId) {
+            if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+                // Enviar una solicitud AJAX para eliminar el usuario
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "{% url 'helloworld' %}".replace('0', usuarioId), true);
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        // Recargar la página después de eliminar el usuario
+                        window.location.reload();
+                    }
+                };
+                xhr.send();
+            }
+        }
+    </script>
+</body>
+{% endblock %}

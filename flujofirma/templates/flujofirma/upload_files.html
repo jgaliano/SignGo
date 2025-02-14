@@ -1,0 +1,185 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>CargarPDFVOL</title>
+    <style>
+        .drop-zone {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: #007bff;
+            cursor: pointer;
+        }
+        .drop-zone.dragover {
+            background-color: #e9f5ff;
+            border-color: #0056b3;
+        }
+
+                /* OVERLAY */
+                .overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: none;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                }
+        
+                .spinner-border {
+                    width: 3rem;
+                    height: 3rem;
+                    color: #ffffff;
+                }
+                /* OVERLAY */
+
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY -->
+    <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+        <div class="d-flex flex-column justify-content-center align-items-center h-100">
+            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;"></div>
+            <span class="mt-2 text-light">CARGANDO...</span>
+        </div>
+    </div>
+    <!-- OVERLAY -->
+
+    <div class="container mt-5">
+        <h2 class="display-5 mb-5 text-center">Cargar Archivos</h2>
+        <div class="card shadow">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-4 text-center">
+                        <div id="drop_zone" class="drop-zone">
+                            <p><i class="fas fa-cloud-upload-alt fa-2x"></i></p>
+                            <p>Arrastra tus documentos aquí o haz clic para seleccionarlos</p>
+                            <input type="file" name="pdf_files" id="pdf_files" accept=".pdf" multiple hidden>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <p id="archivos_cargados" class="text-muted text-center">No se han seleccionado archivos</p>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary validateButton" id="btn_enviar" disabled>Continuar</button>
+                    </div>
+                    <div id="messageError" class="text-danger text-center mt-3"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pdfInput = document.getElementById('pdf_files');
+        const archivosCargados = document.getElementById('archivos_cargados');
+        const btnEnviar = document.getElementById('btn_enviar');
+        const messageError = document.getElementById('messageError');
+        const dropZone = document.getElementById('drop_zone');
+
+        let totalFilesSize = 0;
+
+        dropZone.addEventListener('click', () => pdfInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+
+            // Asignar archivos arrastrados al input de tipo file
+            const dataTransfer = new DataTransfer();
+            Array.from(files).forEach(file => dataTransfer.items.add(file));
+            pdfInput.files = dataTransfer.files;
+
+            handleFiles(pdfInput.files);
+        });
+
+        pdfInput.addEventListener('change', () => handleFiles(pdfInput.files));
+
+        function handleFiles(files) {
+            let valid = true;
+            let currentSize = 0;
+            totalFilesSize = 0;
+
+            
+
+            if (files.length === 0) {
+                archivosCargados.textContent = "No se han seleccionado archivos";
+                btnEnviar.disabled = true;
+                return;
+            }
+
+            if(files.length > 10){
+                valid = false;
+                messageError.textContent = "No se pueden cargar más de 10 archivos.";
+                archivosCargados.textContent = "No se han seleccionado archivos válidos.";
+                btnEnviar.disabled = true;
+                return;
+            }
+
+            Array.from(files).forEach(file => {
+                if (file.type !== "application/pdf") {
+                    valid = false;
+                    messageError.textContent = "Todos los archivos deben ser PDF.";
+                } else if (file.size > 10 * 1024 * 1024) { // 10 MB
+                    valid = false;
+                    messageError.textContent = "Cada archivo individual no debe superar los 10 MB.";
+                }
+                currentSize += file.size;
+            });
+
+            totalFilesSize += currentSize;
+
+            if (totalFilesSize > 10 * 1024 * 1024) { // 100 MB
+                valid = false;
+                messageError.textContent = "El tamaño total de los archivos no debe superar los 10 MB.";
+            }
+
+            if (valid) {
+                archivosCargados.textContent = `${files.length} archivo(s) seleccionado(s)`;
+                messageError.textContent = "";
+                btnEnviar.disabled = false;
+            } else {
+                archivosCargados.textContent = "No se han seleccionado archivos válidos.";
+                btnEnviar.disabled = true;
+            }
+        }
+
+                        // OVERLAY
+                        document.addEventListener("DOMContentLoaded", () => {
+                            if (sessionStorage.getItem("showOverlay") === "true") {
+                                document.getElementById("overlay").classList.add("d-none"); // Oculta el overlay
+                                sessionStorage.removeItem("showOverlay"); // Limpia el estado
+                            }
+                        });
+                
+                        document.querySelectorAll(".validateButton").forEach(button => {
+                            button.addEventListener("click", function() {
+                                document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                                sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+                            });
+                        });
+                        // OVERLAY
+
+    </script>
+</body>
+</html>
+{% endblock %}

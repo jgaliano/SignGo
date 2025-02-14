@@ -1,0 +1,177 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign</title>
+    <link rel="stylesheet" href="/static/styles/signbox/sign.css">
+</head>
+    <body>
+        <div class="caja">
+            <div class="box_1_responsive">
+                    <div class="box_1">
+                        <h1>{{ username }}</h1>
+                    </div>
+                </div>
+                <div class="statusBox">
+                    <p id="statusDoc">{{ estado }}</p>
+                </div>
+                <div id="liveAlertPlaceholder"></div>
+                <div class="container">
+                    <div class="headtext">
+                        <h1>Documentos a Firmar Con Estampa Grafica Personalizada</h1>
+                    </div>
+                    <br>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            Documentos
+                        </div>
+                        <div class="card-body">
+                            <table id="datatablesSimple" class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre Documento</th>
+                                        <th>Tamaño Documento</th>
+                                        <th>Archivo</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    {% for data in documentos %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ data.0 }}</td>
+                                        <td>{{ data.1 }}</td>
+                                        <td>
+                                            <button class="btn btn-dark" onclick="mostrar('{{data.0}}', '{{ carpeta }}')" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#exampleModal1">
+                            Siguiente
+                        </button>            
+                    </div>
+                </div>
+
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">DemoFirma</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="contenedor" class="modal-body" style="height: 80vh;">
+
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ingrese Credenciales de Firma</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                      <label for="exampleInputEmail1" class="form-label">Usuario</label>
+                      <input value="1088410" name="inputUsuario" placeholder="Ingrese Usuario" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" required>
+                      <!-- <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div> -->
+                    </div>
+                    <div class="mb-3">
+                      <label for="exampleInputPassword1" class="form-label">Contraseña</label>
+                      <input value="N3A6wDYB" name="inputContraseña" placeholder="Ingrese Contraeña" type="password" class="form-control" id="exampleInputPassword1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputPassword1" class="form-label">COdigo PIN</label>
+                        <input value="abc123**" name="inputPin" placeholder="Ingrese PIN" type="password" class="form-control" id="exampleInputPassword1" required>
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-success">Firmar</button>
+                    </div>
+                  </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+            </div>
+        </div>
+        </div>
+    </body>
+    <script>
+        function showAlert(message, type) {
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible" role="alert">'
+                + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+            document.getElementById('liveAlertPlaceholder').append(wrapper);
+
+            setTimeout(() => {
+                wrapper.querySelector('.alert').classList.add('alert-fadeout');
+                setTimeout(() => {
+                    wrapper.remove();
+                }, 10000);
+            }, 10000);
+        }
+
+        {% if messages %}
+            {% for message in messages %}
+                showAlert("{{ message }}", "danger");
+            {% endfor %}
+        {% endif %}
+
+        function setCookie(c_name,value,exdays){
+            var exdate=new Date();
+            exdate.setDate(exdate.getDate() + exdays);
+            var c_value=escape(value) + ((exdays==null) ? "" : "; expires=" + exdate.toUTCString());
+            document.cookie=c_name + "=" + c_value;
+        }
+        setCookie('bit4id-sign','sign',1)
+        
+        
+        document.addEventListener("DOMContentLoaded", function(){
+            msg = document.getElementById('statusDoc').innerText
+        
+            if (msg === "Documentos Firmados"){
+                document.getElementById('statusDoc').style.color = "green"
+            }else{
+                document.getElementById('statusDoc').style.color = "red"
+            }
+        })
+        
+        function mostrar(data, carpeta){
+            var caja = document.getElementById('contenedor')
+            var embed = document.createElement('embed')
+            embed.src = "/media/signbox/FilesNoFirmados/" + carpeta + "/" + data
+            embed.type = "application/pdf"
+            caja.innerHTML = ''
+            caja.appendChild(embed)
+            console.log(data)
+        }
+        
+        function closeModal() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+    </script>
+</html>
+{% endblock %}

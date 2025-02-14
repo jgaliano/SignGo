@@ -1,0 +1,53 @@
+a{
+  text-decoration: none;
+}
+
+a:hover{
+text-decoration: none;
+color: white;
+}
+
+.contenedor-div{
+  gap: 20px;
+}
+
+.contenedor-select-div{
+  display: flex;
+  width: 25%;
+}
+
+img{
+  width: 150px;
+}
+
+.card .icon {
+  font-size: 3rem;
+  color: rgb(1, 117, 212);
+}
+
+.card-text {
+  color: rgb(0, 0, 0);
+}
+
+.card {
+  transition: all 0.5s;
+}
+
+.card:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.card:hover .icon,
+.card:hover .card-text {
+  color: #000000;
+} 
+
+.up-div-span{
+  margin-top: -40px;
+}
+
+embed{
+  width: 98%;
+  height: 98%;
+}

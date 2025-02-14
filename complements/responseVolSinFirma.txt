@@ -1,0 +1,93 @@
+{
+  "report": {
+    "now": "2024-09-04T21:50:24.353583", 
+    "type": "PAdES", 
+    "document_uri": "/contents?documentid=be78e4c8dcac45cf", 
+    "annotations": []
+  }, 
+  "errors": [
+    {
+      "where": "/", 
+      "what": "NOT_SIGNED"
+    }
+  ], 
+  "data": {
+    "lang": "es", 
+    "upload_time": "2024-09-04T21:29:54.228433", 
+    "outformat": "json", 
+    "filename": "Prueba_6.pdf", 
+    "headers": {
+      "CONTENT-LENGTH": "31400", 
+      "ACCEPT-ENCODING": "gzip, deflate, br", 
+      "HOST": "10.10.10.9:8085", 
+      "ACCEPT": "*/*", 
+      "USER-AGENT": "PostmanRuntime/7.41.2", 
+      "CONNECTION": "keep-alive", 
+      "CACHE-CONTROL": "no-cache", 
+      "CONTENT-TYPE": "multipart/form-data; boundary=--------------------------893394237415969342488226", 
+      "AUTHORIZATION": "Basic cHJlcHJvZEBjY2c6UGJjMTIzKio=", 
+      "POSTMAN-TOKEN": "8d864f55-952f-4ac8-b48f-b991edb96398"
+    }, 
+    "document_hash_type": "sha256", 
+    "template": "report", 
+    "report_uri": "/reports?documentid=be78e4c8dcac45cf", 
+    "verification_date": null, 
+    "documentid": "be78e4c8dcac45cf", 
+    "document_hash": "be78e4c8dcac45cfc5f8ad1f7dabe04c2af46ce552b2dfe4f2886e503f13e125"
+  }, 
+  "messages": {
+    "TIMESTAMP_VERIFIED": "El documento no ha sido modificado despu\u00e9s de aplicar el sello de tiempo", 
+    "INVALID_CONTENT_TYPE_ATTRIBUTE": "Atributo de firma electr\u00f3nica no conforme (contentType)", 
+    "MULTIPLE_SIGNING_TIME_ATTRIBUTE": "Fecha y hora de la firma declaradas varias veces (signingTime)", 
+    "DOCUMENT_CHANGED_AFTER_TIMESTAMP": "El documento se ha actualizado despu\u00e9s de aplicar el sello de tiempo sin alterar la revisi\u00f3n. El sello de tiempo aplicado anteriormente sigue siendo v\u00e1lida.", 
+    "REVOKED": "Certificado revocado", 
+    "SIGNATURE_TIMESTAMP_OK": "Sello de tiempo v\u00e1lido", 
+    "UNKNOWN_REVOCATION_INFO": "No es posible consultar el estado de revocaci\u00f3n", 
+    "UNSUPPORTED_ALGORITHM": "Algoritmo de firma no compatible", 
+    "UNTRUSTED": "Certificado de CA no confiable", 
+    "CE2011130EU": "La firma contempla los requerimientos de la norma 2011/130/UE de la CE", 
+    "NOT_YET_VALID": "Certificado a\u00fan no v\u00e1lido", 
+    "NOTCE2011130EU": "La firma no contempla los requerimientos de la norma 2011/130/UE de la CE", 
+    "UNKNOWN_ISSUER": "Certificado emitido por un PSC desconocido", 
+    "CONTENT_TIMESTAMP_OK": "Sello de tiempo v\u00e1lido", 
+    "INVALID_CERTIFICATE_REF": "Referencias a certificados incorrectos", 
+    "DOCUMENT_MODIFIED_AFTER_TIMESTAMP": "El documento ha sido modificado despu\u00e9s de aplicar el sello de tiempo", 
+    "SIGNATURE_TIMESTAMP_ERROR": "Error de sello de tiempo", 
+    "SIGNING_KEY_LESS_THAN_2048_BITS": "La clave de firma tiene una longitud inferior a 2048 bit", 
+    "NO_CA_BASIC_CONSTRAINTS": "Certificado ra\u00edz sin atributos de CA", 
+    "DOCUMENT_CHANGED_AFTER_SIGNATURE": "El documento se ha actualizado despu\u00e9s de la firma sin alterar la revisi\u00f3n. La firma aplicada anteriormente sigue siendo v\u00e1lida.", 
+    "INDETERMINATE_VALIDATION_TIME": "Fecha y hora de la verificaci\u00f3n indeterminada", 
+    "SIGNED_DATA_NOT_FOUND": "La informaci\u00f3n firmada no est\u00e1 presente", 
+    "NO_OCSP_SIGNING_USAGE": "El certificado utilizado para firmar la respuesta OCSP no es adecuado para este prop\u00f3sito", 
+    "SIGNATURE_VERIFIED": "El documento no ha sido modificado despu\u00e9s de la firma", 
+    "INVALID_TIMESTAMP": "Sello de tiempo no v\u00e1lido", 
+    "CONTENT_TIMESTAMP_ERROR": "Sello de tiempo no v\u00e1lido", 
+    "NO_CERTIFICATE_SIGNING_USAGE": "Certificado emitido por una CA no adecuada para este prop\u00f3sito", 
+    "XML_SCHEMA_MISMATCH": "El archivo XML no respeta el esquema XAdES/XMLDSIG", 
+    "SIGNING_CERTIFICATE_V1": "La referencia al certificado de firma tiene un formato obsoleto (signingCertificate v1)", 
+    "DOCUMENT_MODIFIED_AFTER_SIGNATURE": "El documento ha sido modificado despu\u00e9s de la firma", 
+    "NO_TIMESTAMPING_USAGE": "El certificado de TSA utilizado para emitir el sello de tiempo no es adecuado para este prop\u00f3sito.", 
+    "NO_CRL_SIGNING_USAGE": "El certificado utilizado para firmar la CRL no es adecuado para este prop\u00f3sito", 
+    "INVALID_SIGNATURE": "Firma no v\u00e1lida", 
+    "TRUSTED": "Certificado de CA confiable", 
+    "SUSPENDED": "Certificado suspendido", 
+    "INVALID_SIGNING_CERTIFICATE_REF": "Referencia al certificado de firma incorrecto", 
+    "WEAK_HASHING_ALGORITHM": "El hash o huella digital del documento se calcul\u00f3 utilizando un algoritmo inseguro", 
+    "NO_SIGNING_CERTIFICATE": "Certificado del firmante no presente", 
+    "EXPIRED": "Certificado caducado", 
+    "NO_SIGNING_CERTIFICATE_REF": "Referencia al certificado de firma no presente", 
+    "SIGNING_CERTIFICATE_REF_FOUND": "La referencia al certificado de firma es v\u00e1lida"
+  }, 
+  "validation": {
+    "signatures": [], 
+    "timestamps": [], 
+    "result": null
+  }, 
+  "profile": [
+    {
+      "type": "PAdES", 
+      "name": "PAdES", 
+      "description": ""
+    }
+  ]
+}

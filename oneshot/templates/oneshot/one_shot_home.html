@@ -1,0 +1,104 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/static/styles/oneshot/one_shot_home.css">
+</head>
+<body>
+    <div class="container mt-5">
+
+        <h2 class="display-5 mb-5 text-center">Crear Solicitud OneShot</h2>
+
+        <form action={% url "solicitud" %} class="row g-3" method="post" id="formulario" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="col-md-4">
+              <label for="inputName" class="form-label">Primer Nombre</label>
+              <input type="text" class="form-control" id="inputName" name="inputName" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Segundo Nombre</label>
+                <input type="text" class="form-control" id="inputSecondName" name="inputSecondName" required>
+              </div>
+            <div class="col-md-4">
+                <label for="inputApellido1" class="form-label">Primer Apellido</label>
+                <input type="text" class="form-control" id="inputApellido1" name="inputApellido1" required>
+            </div>
+            <div class="col-md-4">
+                <label for="inputApellido2" class="form-label">Segundo Apellido</label>
+                <input type="text" class="form-control" id="inputApellido2" name="inputApellido2">
+            </div>
+            <div class="col-md-4">
+                <label for="inputDPI" class="form-label">DPI</label>
+                <input type="number"" class="form-control" id="inputDPI" name="inputDPI" required>
+            </div>
+            <div class="col-md-4">
+                <label for="inputEmail" class="form-label">Email</label>
+            <input type="email" class="form-control" id="inputEmail" name="inputEmail" required>
+            </div>
+            <div class="col-md-4">
+                <label for="inputCelular" class="form-label">Celular</label>
+                <input type="number" class="form-control" id="inputCelular" name="inputCelular" required>
+            </div>
+            <div class="col-8">
+                <label for="inputAddress" class="form-label">Dirección</label>
+                <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St" name="inputAddress" required>
+            </div>
+            <div class="col-4">
+                <label for="formFile1" class="form-label">Imagen Frontal</label>
+                <input class="form-control" type="file" id="formFile1" accept=".jpg" name="formFile1" required>
+            </div>
+            <div class="col-4">
+                <label for="formFile2" class="form-label">Imagen Lateral</label>
+                <input class="form-control" type="file" id="formFile2" accept=".jpg" name="formFile2" required>
+            </div>
+            <div class="col-4">
+                <label for="formFile3" class="form-label">Imagen de usuario con DPI</label>
+                <input class="form-control" type="file" id="formFile3" accept=".jpg" name="formFile3" required>
+            </div><br>
+            <div class="centrar">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" name="videoId" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                    <label class="form-check-label" for="flexSwitchCheckDefault">Con Video Identificación</label>
+                </div>
+            </div>
+            <div class="centrar">
+                <span onclick="validar()" class="btn btn-dark" id="btn_enviar">Siguiente</span>
+            </div>   
+            <div class="overlay2" id="overlay2">
+                <div class="modal2" id="modal2">
+                    <div id="contenedor2">
+                        <div class="login">
+                            <h3>Ingresar Credenciales de Firma</h3><br>
+                        </div>
+                        <div class="mb-3">
+                            <label for="" class="form-label">Usuario: </label>
+                            <input id="usuario" name="usuario"  type="text" class="form-control" placeholder="Ingrese Usuario" required value="1108124"><!-- value="1108124" -->
+                        </div>
+                        <div class="mb-3">
+                            <label for="" class="form-label">Contraseña: </label>
+                            <input id="contraseña" name="contraseña" type="password" class="form-control" placeholder="Ingrese Contraseña" required value="29yqdGGw"><!-- value="29yqdGGw" -->
+                        </div>
+                        <div class="mb-3">
+                            <label for="" class="form-label">Codigo PIN: </label>
+                            <input id="pin" name="pin" type="password" class="form-control" placeholder="Ingrese PIN" required value="belorado74"><!-- value="belorado74" -->
+                        </div>
+                    </div><br>
+                    <div class="btn_modal">
+                        <button onclick="mostrarSpinner()" id="button1" type="submit" class="btn btn-success">Siguiente</button>
+                        <span id="button2" class="btn btn-danger" onclick="closeModal2()">Cancelar</span>
+                    </div>
+                    <div>
+                    </div> 
+                </div>
+            </div>
+          </form>
+    </div>
+    <div id="spinner" class="spinner hidden"></div>
+    <script src="/static/js/oneshot/one_shot_home.js"></script>
+</body>
+</html>
+{% endblock %}

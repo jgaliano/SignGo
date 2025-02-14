@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/ae360af17e.js" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/styles/eSignAnyWhere/base.css">
+    <title>DemoFirma</title>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <div class="h-100">
+                <div class="sidebar-logo">
+                    <a href="/home">DemoFirma</a>
+                </div>
+                <!-- Sidebar Navigation -->
+                <ul class="sidebar-nav">
+                    <li class="sidebar-header">
+                        Sistemas de Firmado
+                    </li>
+                    {% if usuario_in_signbox %}
+                        <li class="sidebar-item">
+                            <a href="/subir-archivo" class="sidebar-link collapsed" data-bs-toggle="collapse" data-bs-target="#dashboard"
+                                aria-expanded="false" aria-controls="dashboard">
+                                <i class="fa-solid fa-sliders pe-2"></i>
+                                SignBox API
+                            </a>
+                            <ul id="dashboard" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                                <li class="sidebar-item">
+                                    <a href="/signbox/uploadFiles" class="sidebar-link">Firmar</a>
+                                </li>
+                                <!-- <li class="sidebar-item">
+                                    <a href="/firmados" class="sidebar-link">Documentos Firmados</a>
+                                </li>
+                                <li class="sidebar-item">
+                                    <a href="/logs" class="sidebar-link">Log</a>
+                                </li>
+                                <li class="sidebar-item">
+                                    <a href="/echo" class="sidebar-link">Validar Conexión</a>
+                                </li> -->
+                            </ul>
+                        </li>
+                    {% endif%}
+                    {% if usuario_in_oneshot %}
+                        <li class="sidebar-item">
+                            <a href="/menu_one_shot" class="sidebar-link collapsed" data-bs-toggle="collapse" data-bs-target="#pages"
+                                aria-expanded="false" aria-controls="pages">
+                                <i class="fa-regular fa-file-lines pe-2"></i>
+                                OneShot API
+                            </a>
+                            <ul id="pages" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                                <li class="sidebar-item">
+                                    <a href="/oneshot/solicitud" class="sidebar-link">Generar Solicitudes</a>
+                                </li>
+                                <li class="sidebar-item">
+                                    <a href="/oneshot/historial" class="sidebar-link">Historial Solicitudes</a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                    {% if usuario_in_vol %}
+                        <li class="sidebar-item">
+                            <a href="/vol/home" class="sidebar-link">
+                                <i class="fa-solid fa-list pe-2"></i>
+                                VOL API
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% if usuario_in_4identity %}
+                        <li class="sidebar-item">
+                            <a href="/4identity/home_4identity" class="sidebar-link"
+                                aria-expanded="false" aria-controls="auth">
+                                <i class="fa-regular fa-user pe-2"></i>
+                                4Identity
+                            </a>
+                        <!-- <ul id="auth" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                                <li class="sidebar-item">
+                                    <a href="#" class="sidebar-link">Login</a>
+                                </li>
+                                <li class="sidebar-item">
+                                    <a href="#" class="sidebar-link">Register</a>
+                                </li>
+                            </ul> -->
+                        </li>
+                    {% endif %}
+                    {% if usuario_in_esign %}
+                        <li class="sidebar-item">
+                            <a href="/uploadFile" class="sidebar-link collapsed" data-bs-toggle="collapse" data-bs-target="#esign"
+                                aria-expanded="false" aria-controls="esign">
+                                <i class="fa-solid fa-pen pe-2"></i>
+                                eSignAnyWhere
+                            </a>
+                            <ul id="esign" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                                <li class="sidebar-item">
+                                    <a href="/eSignAnyWhere/uploadFile" class="sidebar-link">Generar Solicitudes</a>
+                                </li>
+                                <li class="sidebar-item">
+                                    <a href="/eSignAnyWhere/solicitudes" class="sidebar-link">Historial Solicitudes</a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                    {% if request.user.is_superuser %}
+                        <li class="sidebar-header">
+                            Mantenimiento
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="/users/" class="sidebar-link collapsed"
+                                aria-expanded="false" aria-controls="multi">
+                                <i class="fa-solid fa-user pe-2"></i>
+                                Usuarios
+                            </a>
+                            <!-- <ul id="multi" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                                <li class="sidebar-item">
+                                    <a href="#" class="sidebar-link collapsed" data-bs-toggle="collapse"
+                                        data-bs-target="#multi-two" aria-expanded="false" aria-controls="multi-two">
+                                        Two Links
+                                    </a>
+                                    <ul id="multi-two" class="sidebar-dropdown list-unstyled collapse">
+                                        <li class="sidebar-item">
+                                            <a href="#" class="sidebar-link">Link 1</a>
+                                        </li>
+                                        <li class="sidebar-item">
+                                            <a href="#" class="sidebar-link">Link 2</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul> -->
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="/billing/" class="sidebar-link collapsed"
+                                aria-expanded="false" aria-controls="multi">
+                                <i class="fa-solid fa-sliders pe-2"></i>
+                                Credenciales Billing
+                            </a>
+                        </li>
+                    <li class="sidebar-item">
+                        <a href="/hostIP/" class="sidebar-link collapsed"
+                            aria-expanded="false" aria-controls="multi">
+                            <i class="fa-solid fa-sliders pe-2"></i>
+                            Host IP
+                        </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </aside>
+        <!-- Main Component -->
+        <div class="main">
+            <nav class="navbar navbar-expand px-3 border-bottom" style="background-color: rgb(1, 117, 212);">
+                <!-- Button for sidebar toggle -->
+                <button class="btn" type="button" data-bs-theme="dark">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="d-flex w-100 justify-content-between">
+                    <div class="mx-auto" id="textoCentral">
+                        
+                    </div>
+                    <div>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" id="textoUser" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ user }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li><a class="dropdown-item" href="{% url 'salir' %}">Cerrar Sesión</a></li>
+                            </ul>
+                        </li>
+                    </div>
+                </div>
+            </nav>
+            <main class="content px-3 py-2">
+                <div class="container-fluid">
+                    <div class="mb-3">
+                      {% block content %}
+                      {% endblock %}                  
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous">
+      </script>
+    <script src="/static/js/eSignAnyWhere/base.js"></script>
+</body>
+</html>

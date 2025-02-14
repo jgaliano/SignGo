@@ -1,0 +1,284 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign</title>
+    <link rel="stylesheet" href="/static/styles/signbox/sign.css">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+
+        /* OVERLAY */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: #ffffff;
+        }
+        /* OVERLAY */
+
+        @media (max-width: 768px) {
+            *{
+                font-size: 12px;
+            }
+            .sidebar {
+                display: none;
+            }
+            .table th, .table td {
+                font-size: 0.8rem;
+                padding: 0.5rem;
+            }
+            .btn {
+                font-size: 0.75rem;
+                padding: 0.4rem;
+            }
+            /* Estilos de tabla para pantallas pequeñas */
+            .table thead {
+                display: none;
+            }
+            .table tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 0.5rem;
+            }
+            .table td {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.9rem;
+            }
+            .table td::before {
+                content: attr(data-label);
+                font-weight: bold;
+                flex-basis: 50%;
+                text-align: left;
+            }
+        }
+        
+    </style>
+</head>
+    <body>
+        <!-- OVERLAY -->
+            <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+                <div class="d-flex justify-content-center align-items-center h-100">
+                    <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">CARGANDO...</span>
+                    </div>
+                </div>
+            </div>
+        <!-- OVERLAY -->
+
+        {% if status == "Firmado" %}
+            <div class="d-flex justify-content-center">
+                <div class="card text-center">
+                    <div class="card-header">
+                        Validación
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title"><strong>Firmado</strong></h5>
+                        <p class="card-text">Este documento ya ha sido firmado exitosamente.</p>
+                        <a href="/planilla/signDocs/{{carpeta}}/{{id}}/{{secretToken}}" class="btn btn-success">Ver Documento Firmado</a>
+                    </div>
+                    <div class="card-footer text-body-secondary">
+                                  
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="caja">
+                <div id="liveAlertPlaceholder"></div>
+                <div class="container">
+                    <div class="headtext">
+                        <h1>Documentos a Firmar</h1>
+                    </div>
+                    <br>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            Documentos
+                        </div>
+                        <div class="card-body">
+                            <table id="datatablesSimple" class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Documento</th>
+                                        <th>Archivo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for data in documentos %}
+                                    <tr>
+                                        <td data-label="#">{{ forloop.counter }}</td>
+                                        <td data-label="Nombre">{{ data.1 }}</td>
+                                        <td data-label="Documento">{{ data.0 }}</td>
+                                        <td data-label="Archivo">
+                                            <button class="btn btn-dark" onclick="mostrar('{{data.0}}', '{{ carpeta }}', '{{ id }}', 'boletas')" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="d-flex justify-content-center">
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal1">
+                                Siguiente
+                            </button>            
+                    </div>
+                </div>
+        {% endif %}            
+                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">DemoFirma</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div id="contenedor" class="modal-body" style="height: 80vh;"></div>
+                            <div class="modal-footer">
+                                <div id="buttonDownload"></div>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+
+        <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ingrese Credenciales de Firma</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Usuario</label>
+                        <input value="1088410" name="inputUsuario" placeholder="Ingrese Usuario" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" required>
+                        <!-- <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div> -->
+                      </div>
+                      <div class="mb-3">
+                        <label for="exampleInputPassword1" class="form-label">Contraseña</label>
+                        <div class="input-group">
+                            <input value="N3A6wDYB" name="inputContraseña" placeholder="Ingrese Contraseña" type="password" class="form-control" id="exampleInputPassword1" required>
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('exampleInputPassword1')">
+                                <i class="fa fa-eye" id="toggleIcon1"></i>
+                            </button>
+                        </div>
+                      </div>
+                      <div class="mb-3">
+                          <label for="exampleInputPassword1" class="form-label">Codigo PIN</label>
+                          <div class="input-group">
+                            <input value="abc123**" name="inputPin" placeholder="Ingrese PIN" type="password" class="form-control" id="exampleInputPassword2" required>
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('exampleInputPassword2')">
+                                <i class="fa fa-eye" id="toggleIcon2"></i>
+                            </button>
+                        </div>
+                      </div>
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-success validateButton">Firmar</button>
+                    </div>
+                  </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+            </div>
+        </div>
+        </div>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.min.js"></script>
+     <script src="/static/js/planilla/sign.js"></script>
+    </body>
+    <script>
+
+        function calculateScale() {
+            const screenWidth = window.innerWidth;
+            return screenWidth < 768 ? 1.3 : 1.3; // Ajusta el tamaño del canva según las dimensiones de la pantalla
+        }
+
+        function mostrar(data, carpeta, id, ruta) {
+            var caja = document.getElementById('contenedor');
+            var divButton = document.getElementById('buttonDownload');
+            caja.innerHTML = ''; 
+            divButton.innerHTML = ''
+        
+            // Construye la URL del archivo PDF
+            var pdfUrl = "/media/pagoPlanilla/" + ruta + "/" + carpeta + "/" + id + "/" + data;
+        
+            // Detecta si el navegador está en un dispositivo móvil
+            var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+            if (!isMobile) {
+                // Opción 1: Para navegadores de escritorio, usar el elemento <object>
+                var object = document.createElement('object');
+                object.data = pdfUrl;
+                object.type = "application/pdf";
+                caja.appendChild(object);
+            } else {
+
+                var createButton = document.createElement('a');
+                createButton.innerText = 'Descargar PDF';
+                createButton.href = pdfUrl
+                createButton.classList.add('btn', 'btn-dark'); // Añade múltiples clases
+                divButton.appendChild(createButton);
+
+                // Opción 2: Para dispositivos móviles, usar PDF.js para renderizar en un <canvas>
+                var canvas = document.createElement('canvas');
+                canvas.id = "pdf-canvas";
+                caja.appendChild(canvas);
+        
+                // Inicializa PDF.js y carga el archivo PDF
+                var pdfjsLib = window['pdfjs-dist/build/pdf'];
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.worker.min.js';
+        
+                pdfjsLib.getDocument(pdfUrl).promise.then(function(pdfDoc) {
+                    pdfDoc.getPage(1).then(function(page) {
+                        var scale = calculateScale();  // Escala del PDF
+                        var viewport = page.getViewport({ scale: scale });
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+        
+                        var renderContext = {
+                            canvasContext: canvas.getContext('2d'),
+                            viewport: viewport
+                        };
+                        page.render(renderContext);
+                    });
+                }).catch(function(error) {
+                    console.error("Error al cargar el PDF: ", error);
+                    caja.innerHTML = "<p>Error al cargar el documento PDF.</p>";
+                });
+            }
+        }
+
+        {% if messages %}
+            {% for message in messages %}
+                showAlert("{{ message }}", "danger");
+            {% endfor %}
+        {% endif %}
+
+    </script>
+</html>
+{% endblock %}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New_Login</title>
+    <link rel="stylesheet" href="/static/styles/app/app_login.css">
+</head>
+<body>
+    <header>
+    </header>
+    <div class="wrapper">
+        <div class="form-box login">
+            <h2>Iniciar Sesión</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="input-box">
+                    <span class="icon">
+                        <ion-icon name="mail"></ion-icon></ion-icon>
+                    </span>
+                    <input type="text" name="username" required>
+                    <label>Usuario</label>
+                </div>
+                <div class="input-box">
+                    <span class="icon">
+                        <ion-icon name="lock-closed"></ion-icon></ion-icon>
+                    </span>
+                    <input type="password" name="password" required>
+                    <label>Contraseña</label>
+                </div>
+                <div class="remember-forgot">
+                    <a class="register-link">¿Olvidó la contraseña?</a>
+                </div>
+                <button type="submit" class="btn">Ingresar</button>
+            </form>
+        </div>
+        
+        <div class="form-box register">
+            <div class="box_header">
+                <h3>Restablecer contraseña</h3><br>
+            </div>
+            <p id="textLogin">Introduce tu correo electrónico y te enviaremos instrucciones para restablecer tu contraseña</p>
+            <form action={% url "home" %} method="post">
+                {% csrf_token %}
+                <div class="input-box">
+                    <span class="icon">
+                        <ion-icon name="mail"></ion-icon></ion-icon>
+                    </span>
+                    <input type="text" name="corroPass" required>
+                    <label>Email</label>
+                </div>
+                <button onclick="mostrarAlert()" type="submit" class="btn">Enviar Correo</button>
+                <div class="login-register">
+                    <p>¿Iniciar sesión con tus credenciales?<a href="#" class="login-link">Login</a></p>
+                </div>
+                {% if messages %}
+                    <br>
+                    <ul id="messages" class="messages">
+                        {% for message in messages %}
+                            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <script src="/static/js/app/app_login.js"></script>
+</body>
+</html> 

@@ -1,0 +1,86 @@
+{% extends 'app_base.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/styles/eSignAnyWhere/formUser.css">
+    <title>Form User</title>
+</head>
+<body>
+    <div class="container">
+        <div>
+            <h2 class="display-5 mb-5 text-center">Crear el sobre</h2>
+        </div>
+
+        <form method="post" class="row gy-2 gx-3 align-items-center">
+            {% csrf_token %}
+            <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">NOMBRE DEL SOBRE</h3> 
+                <div class="d-flex justify-content-center contenedor-div">
+                    <div class="col-auto">
+                        <label class="visually-hidden" for="autoSizingInput">Name</label>
+                        <input required name="nombreSobre" type="text" class="form-control" id="autoSizingInput" placeholder="Nombre">
+                    </div>
+                </div>
+
+
+                <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">DESTINATARIO</h3> 
+                <div class="d-flex justify-content-center contenedor-div">
+                    <div class="col-auto">
+                        <label class="visually-hidden" for="autoSizingInput">Name</label>
+                        <input required name="nombreDestinatario" type="text" class="form-control" id="autoSizingInput" placeholder="Nombres">
+                    </div>
+                    <div class="col-auto">
+                        <label class="visually-hidden" for="autoSizingInput">Apellido</label>
+                        <input required name="apellidoDestinatario" type="text" class="form-control" id="autoSizingInput" placeholder="Apellidos">
+                    </div>
+                    <div class="col-auto">
+                        <label class="visually-hidden" for="autoSizingInputGroup">Username</label>
+                        <div class="input-group">
+                            <div class="input-group-text">@</div>
+                            <input required name="emailDestinatario" type="text" class="form-control" id="autoSizingInputGroup" placeholder="Email">
+                        </div>
+                    </div>
+                </div>
+            
+
+                <div>
+                    <div class="d-flex justify-content-center">
+                        <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">TIPO DE FIRMA</h3> 
+                    </div>
+                    <div class="col-auto d-flex justify-content-center">
+                        <div class="contenedor-select-div">
+                            <label class="visually-hidden" for="autoSizingSelect">Preference</label>
+                            <select required name="tipoCertificado" class="form-select" id="autoSizingSelect">
+                                <option selected>Opciones...</option>
+                                <option value="1">Firma DrawToSign</option>
+                                <option value="2">Firma con Certificado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            
+
+                <div class="d-flex justify-content-center">
+                    <button class="btn btn-dark" type="submit" id="validateButton">
+                        <span class="spinner-border spinner-border-sm" aria-hidden="true" style="display: none;"></span>
+                        <span role="status">Generar</span>
+                    </button>
+                </div>
+          </form>
+    </div>
+    <script>
+        document.getElementById("validateButton").addEventListener("click", function() {
+            this.querySelector(".spinner-border").style.display = "inline-block";
+            
+            setTimeout(() => {
+                this.disabled = true;
+            }, 1);
+        });
+    </script>
+</body>
+</html>
+{% endblock %}

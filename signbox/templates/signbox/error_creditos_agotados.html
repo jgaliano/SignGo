@@ -1,0 +1,73 @@
+<style>
+    .page-grid {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(3, 50px);
+        grid-template-rows: repeat(4, 50px);
+        gap: 10px;
+    }
+    
+    .grid-item {
+        width: 50px;
+        height: 50px;
+        border: 1px solid #ccc;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .grid-item.selected {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    /* OVERLAY */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        color: #ffffff;
+    }
+    /* OVERLAY */
+    
+</style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card shadow-sm p-4 mb-4 bg-white rounded">
+            <div class="d-flex align-items-center">
+                <div class="icon-container" style="font-size: 2rem; margin-right: 15px;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/190/190406.png" 
+                         alt="Alerta" 
+                         style="width: 40px; height: 40px;">
+                </div>
+                <div>
+                    <h5 class="mb-0" style="color: #dc3545;">Creditos Agotados</h5>
+                    <p class="mb-0 text-muted">Creditos insuficientes. Por favor ponganse en contacto con el proveedor para adquirir más creditos.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+              
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.min.js"></script>
+ <script src="/static/js/signbox/sign.js"></script>
+</body>

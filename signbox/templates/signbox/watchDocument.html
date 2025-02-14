@@ -1,0 +1,127 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign</title>
+    <link rel="stylesheet" href="/static/styles/signbox/watchDocuemnt.css">
+    <style>
+        /* Estilo general para la tabla */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+/* Estilo para pantallas pequeñas */
+@media (max-width: 768px) {
+    .table {
+        display: block; /* Convierte la tabla en bloque */
+    }
+
+    .table thead {
+        display: none; /* Oculta los encabezados de la tabla */
+    }
+
+    .table tbody {
+        display: block; /* Convierte el cuerpo de la tabla en bloque */
+    }
+
+    .table tr {
+        display: block; /* Cada fila ocupa todo el ancho */
+        margin-bottom: 10px;
+    }
+
+    .table td {
+        display: block;
+        text-align: left; /* Alinea el texto a la izquierda */
+        padding: 8px;
+        border: none;
+        border-bottom: 1px solid #ddd; /* Opcional: Separador entre filas */
+    }
+
+    .table td::before {
+        content: attr(data-label); /* Usa los atributos personalizados para encabezados */
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+        color: #333; /* Color del texto del encabezado */
+    }
+}
+
+    </style>
+</head>
+    <body>
+        <div class="caja">
+                <div class="container mt-5">
+                        <div class="d-flex justify-content-center align-items-center mb-4">
+                            <h2>Documentos Firmados</h2>
+                        </div><br>
+                            <div id="resultados">
+                                <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+                                <section class="table_outer">
+                                    <div class="container">
+                                        <div class="row justify-content-center">
+                                            <div class="col-12">
+                                                <div class="card border-0 shadow">
+                                                    <div class="card-body">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-hover mb-0">
+                                                                <thead class="table-light">
+                                                                    <tr>
+                                                                        <th scope="col">NOMBRE DOCUMENTO</th>
+                                                                        <th scope="col">ACCIÓN</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                {% if archivos %}
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td data-label="NOMBRE DOCUMENTO">{{ archivos.NombreArchivo }}</td>
+                                                                        <td data-label="ACCIÓN">
+                                                                            <button class="btn btn-success" onclick="mostrar('{{ archivos.url_archivo }}')" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                                {% else %}
+                                                                <tr>
+                                                                    <td colspan="2" class="text-center">No hay documentos firmados aún.</td>
+                                                                </tr>
+                                                                {% endif %}
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                    </div>
+                </div>
+
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">DemoFirma</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="contenedor" class="modal-body" style="height: 80vh;"></div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+     <script src="/static/js/signbox/watchDocument.js"></script>
+    </body>
+</html>
+{% endblock %}

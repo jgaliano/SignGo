@@ -1,0 +1,23 @@
+h3{
+    color: green;
+}
+.box_central_pdf{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 500px;
+    justify-content: center;
+}
+.done_pdf{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .done_pdf img{
+    height: 50px;
+    width: 50px;
+  }
+
+  .p_texto{
+    justify-content: center;
+  }

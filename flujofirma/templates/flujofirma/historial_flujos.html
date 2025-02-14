@@ -1,0 +1,268 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial</title>
+    <style>
+        embed{
+            width: 98%;
+            height: 98%;
+          }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+
+        <!-- Sección superior -->
+        <div class="d-flex justify-content-center align-items-center mb-4">
+            <h2>Historial Flujos</h2>
+            <!-- <a class="btn btn-primary" href="/planilla/crearEmpresa">Crear Empresa</a> -->             
+        </div>
+
+        <!-- Filtros de búsqueda -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Filtros de Búsqueda</h5>
+                <form id="filtros-form" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="nombreEmpresa" class="form-label">Nombre Flujo</label>
+                            <input value="{{ FiltroNombre }}" type="text" class="form-control" id="nombreEmpresa" name="nombreEmpresa" placeholder="Nombre Flujo">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha: Desde</label>
+                            <input value="{{ FiltroDesde }}" type="date" class="form-control" id="fechaRegistroDesde" name="fechaRegistroDesde">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha: Hasta</label>
+                            <input value="{{ FiltroHasta }}" type="date" class="form-control" id="fechaRegistro" name="fechaRegistroHasta">
+                        </div>
+                    </div>
+                    <button type="button" onclick="filtrar()" class="btn btn-secondary">Buscar</button>
+                    <a href="/signbox/historial/" type="submit" class="btn btn-danger">Resetear Filtros</a>
+                    <button type="button" onclick="generarReporte()" class="btn btn-warning">Generar PDF</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resultados de la búsqueda -->
+        <div id="resultados">
+            <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+            <section class="table_outer">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-12">
+                            <div class="card border-0 shadow">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0 ">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th scope="col">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" value=""
+                                                                id="select_all" />
+                                                        </div>
+                                                    </th>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">NOMBRE FLUJO</th>
+                                                    <th scope="col">FECHA ENVÍO</th>
+                                                    <!-- <th scope="col">ES</th -->
+                                                    <th scope="col">ACCIÓN</th>
+                                                </tr>
+                                            </thead>
+                                            {% for envio in envios %}
+                                            <tbody>
+                                                <tr>
+                                                    <th scope="row">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input checkbox" type="checkbox" value=""
+                                                                id="flexCheckDefault1" />
+                                                        </div>
+                                                    </th>
+                                                    <td>{{ forloop.counter }}</td>
+                                                    <td>{{ envio.nombre_envio }}</td>
+                                                    <td>{{ envio.fecha_creacion }}</td>
+                                                    <!-- <td>{{ data.FechaFirmado }}</td> -->
+                                                    <td>
+                                                        <a href="/flujo_firma/progreso_flujo/{{envio.TokenAuth}}" class="btn btn-success btn-sm px-2">
+                                                            <i class="fa-solid fa-eye">
+                                                                <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="6" class="text-center">No hay documentos firmados</td>
+                                                </tr>
+                                            </tbody>
+                                            {% endfor %}
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    <!-- Modal para compartir documento-->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Compartir</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+                <div class="modal-body">
+                    <div id="liveAlertPlaceholder"></div>
+                    <div class="card w-100 mb-3">
+                        <div class="card-body">
+                          <h5 class="card-title">Copiar Enlace</h5>
+                          <p class="card-text">Copiar enlace de documento firmado para compartir manualmente por WhatsApp.</p>
+                          <input class="form-control" type="text" value="" id="linkToCopy" readonly><p></p>
+                          <button onclick="copiarLink()" class="btn btn-primary">Copiar</button>
+                        </div>
+                    </div>
+                    <hr class="hr-horizontal">
+                    <div class="card w-100 mb-3">
+                        <div class="card-body">
+                          <h5 class="card-title">Enviar Documento</h5>
+                          <p class="card-text">Enviar enlace de documento firmado por medio de correo electrónico.</p>
+                          <p class="fw-lighter fs-6">Para enviar a más de 1 direccion, separe por "<strong>,</strong>" (comas)</p>
+                          <input class="form-control" type="email" placeholder="Ingrese dirección de correo"><p></p>
+                          <button class="btn btn-primary">Enviar</button>
+                        </div>
+                    </div>
+                </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+            <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+            </div>
+        </div>
+        </div>
+    </div>
+    <!-- termina modal para compartir documento -->
+
+    <!-- Modal para mostrar documentos  -->
+    <div class="modal fade" id="exampleModalFile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Previsualización</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="contenedorFile" class="modal-body" style="height: 80vh;"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+          </div>
+        </div>
+    </div>
+    <!-- Termina modal para mostrar documetnos -->
+
+    </div>
+    <script>
+        $(document).ready(function () {
+            // Select/deselect all checkboxes
+            $('#select_all').click(function () {
+                if ($(this).is(':checked')) {
+                    $('.checkbox').prop('checked', true);
+                } else {
+                    $('.checkbox').prop('checked', false);
+                }
+            });
+
+            // If all checkboxes are selected, select the top checkbox
+            $('.checkbox').click(function () {
+                if ($('.checkbox:checked').length === $('.checkbox').length) {
+                    $('#select_all').prop('checked', true);
+                } else {
+                    $('#select_all').prop('checked', false);
+                }
+            });
+        });
+
+        document.querySelectorAll(".validateButton").forEach(function(button) {
+            button.addEventListener("click", function() {
+                this.querySelector(".spinner-border").style.display = "inline-block";
+                var icono = this.querySelector(".fa-eye");
+                icono.style.display = "none";
+
+                setTimeout(() => {
+                    this.disabled = true;
+                }, 1);
+            });
+        }); 
+
+        function mostrar(url){
+            var alertWrappers = document.querySelectorAll('.alert-wrapper');
+            alertWrappers.forEach(function(wrapper) {
+                wrapper.remove();
+            });
+            var caja = document.getElementById('contenedorFile')
+            var embed = document.createElement('embed')
+            embed.src = url
+            embed.type = "application/pdf"
+            caja.innerHTML = ''
+            caja.appendChild(embed)
+        }
+
+        function copiarLink(){
+            var copiarTexto = document.getElementById('linkToCopy')
+            copiarTexto.select()
+            copiarTexto.setSelectionRange(0, 99999);
+            
+            document.execCommand("copy");
+
+            showAlert("Enlace copiado al portapeles", "success")
+        }
+
+        function enviarFile(){
+            showAlert("Correo Enviado", "success")
+        }
+
+        function showAlert(message, type) {
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = '<div class="alert alert-' + type + '" role="alert">' + message + '</div>';
+            document.getElementById('liveAlertPlaceholder').append(wrapper);
+
+            setTimeout(() => {
+                wrapper.querySelector('.alert').classList.add('alert-fadeout');
+                setTimeout(() => {
+                    wrapper.remove();
+                }, 10000);
+            }, 10000);
+        }
+
+        {% if messages %}
+            {% for message in messages %}
+                showAlert("{{ message }}", "danger");
+            {% endfor %}
+        {% endif %}
+
+        function cargarDatosModal(button){
+            const url = button.getAttribute('data-url');
+            const nombreArchivo = button.getAttribute('data-nombre');
+
+            const linkInput = document.getElementById('linkToCopy');
+            linkInput.value = url;
+
+            const tituloModal = document.getElementById('exampleModalLabel');
+            tituloModal.textContent = `Compartir: ${nombreArchivo}`;
+        }
+
+    </script>
+    <script src="/static/js/signbox/historial.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{% endblock %}

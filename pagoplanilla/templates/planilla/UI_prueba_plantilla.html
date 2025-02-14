@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Enlace a Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Enlace a Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Editor de Variables</title>
+    <style>
+        .line {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: auto;
+            overflow-y: hidden;
+            width: 100%;
+            min-height: 27.94cm;
+            max-height: 27.94cm;
+            font-family: Arial, sans-serif;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        .variable-tag {
+            border: 1px solid black;
+            padding: 5px;
+            margin-bottom: 5px;
+            background-color: lightblue;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .toolbar button, .toolbar select {
+            margin-right: 8px;
+            margin-bottom: 5px;
+        }
+        .toolbar button {
+            width: 36px;
+            height: 36px;
+            font-weight: bold;
+            font-size: 16px;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid" style="height: 100vh;">
+        <div class="row h-100">
+            <!-- Panel Izquierdo: Variables -->
+            <div id="variable-list" class="col-md-4 border-right p-3">
+                <h3>Variables</h3>
+                <div class="list-group" id="variable-tags">
+                    <!-- Las etiquetas de variables se agregarán aquí -->
+                </div>
+            </div>
+            
+            <!-- Panel Derecho: Editor de Texto -->
+            <div id="text-editor" class="col-md-8 p-3">
+                <h3>Editor</h3>
+                <!-- Barra de herramientas para el formato -->
+                <div class="toolbar mb-2">
+                    <button class="btn btn-light" title="Negrita" onclick="document.execCommand('bold')"><strong>B</strong></button>
+                    <button class="btn btn-light" title="Cursiva" onclick="document.execCommand('italic')"><em>I</em></button>
+                    <button class="btn btn-light" title="Subrayado" onclick="document.execCommand('underline')"><u>U</u></button>
+                    <button class="btn btn-light" title="Lista con viñetas" onclick="document.execCommand('insertUnorderedList')">•</button>
+                    <button class="btn btn-light" title="Lista numerada" onclick="document.execCommand('insertOrderedList')">1.</button>
+
+                    <!-- Botones de Alineación -->
+                    <button class="btn btn-light" title="Alinear a la izquierda" onclick="document.execCommand('justifyLeft')">
+                        <i class="fas fa-align-left"></i>
+                    </button>
+                    <button class="btn btn-light" title="Centrar" onclick="document.execCommand('justifyCenter')">
+                        <i class="fas fa-align-center"></i>
+                    </button>
+                    <button class="btn btn-light" title="Alinear a la derecha" onclick="document.execCommand('justifyRight')">
+                        <i class="fas fa-align-right"></i>
+                    </button>
+
+                    <!-- Selección de Tamaño de Fuente -->
+                    <select class="btn btn-light" title="Tamaño de fuente" onchange="changeFontSize(this)">
+                        <option value="">Tamaño</option>
+                        <option value="1">Pequeño</option>
+                        <option value="2">Mediano</option>
+                        <option value="3">Grande</option>
+                    </select>
+
+                    <!-- Selección de Color de Fuente -->
+                    <select class="btn btn-light" title="Color de fuente" onchange="changeFontColor(this)">
+                        <option value="">Color</option>
+                        <option value="#000000" style="color: #000000;">Negro</option>
+                        <option value="#FF0000" style="color: #FF0000;">Rojo</option>
+                        <option value="#0000FF" style="color: #0000FF;">Azul</option>
+                        <option value="#008000" style="color: #008000;">Verde</option>
+                        <option value="#FFA500" style="color: #FFA500;">Naranja</option>
+                        <option value="#800080" style="color: #800080;">Púrpura</option>
+                        <option value="#FFFF00" style="color: #FFFF00;">Amarillo</option>
+                        <option value="#A52A2A" style="color: #A52A2A;">Marrón</option>
+                        <option value="#00FFFF" style="color: #00FFFF;">Cian</option>
+                        <option value="#FFC0CB" style="color: #FFC0CB;">Rosa</option>
+                    </select>
+                </div>
+
+                <!-- Editor de Texto -->
+                <div class="line" contenteditable="true" oninput="autoGrow(this)">Escribe aquí...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts necesarios -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script del Editor -->
+    {% verbatim %}
+    <script>
+        // Ejemplo de variables
+        const variables = ["nombre", "apellido", "email", "teléfono", "dirección"];
+
+        const variableList = document.getElementById('variable-tags');
+        const textEditor = document.querySelector('.line');
+
+        // Crear etiquetas para cada variable y hacerlas arrastrables
+        variables.forEach(variable => {
+            const tag = document.createElement('div');
+            tag.innerText = variable;
+            tag.className = 'list-group-item variable-tag';
+            tag.setAttribute('draggable', true);
+            
+            tag.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text', variable);
+            });
+
+            variableList.appendChild(tag);
+        });
+
+        // Hacer las líneas del editor de texto receptivas para soltar variables
+        textEditor.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        textEditor.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const variable = e.dataTransfer.getData('text');
+            insertAtCursor(`{{${variable}}}`);
+        });
+
+        // Función para insertar texto en la posición del cursor
+        function insertAtCursor(text) {
+            const sel = window.getSelection();
+            if (sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0);
+                range.deleteContents(); // Opcional: eliminar el texto seleccionado
+                const textNode = document.createTextNode(text);
+                range.insertNode(textNode);
+                range.collapse(false); // Colapsar el rango al final del nuevo nodo
+                textEditor.focus(); // Enfocar de nuevo el editor
+            }
+        }
+
+        // Función para cambiar el tamaño de fuente
+        function changeFontSize(select) {
+            const size = select.value;
+            if (size) {
+                document.execCommand('fontSize', false, size);
+            }
+        }
+
+        // Función para cambiar el color de fuente
+        function changeFontColor(select) {
+            const color = select.value;
+            if (color) {
+                document.execCommand('foreColor', false, color);
+            }
+        }
+
+        // Función para ajustar la altura del editor
+        function autoGrow(element) {
+            element.style.height = 'auto'; // Restablecer altura
+            element.style.height = (element.scrollHeight) + 'px'; // Ajustar a contenido
+        }
+    </script>
+    {% endverbatim %}
+</body>
+</html>

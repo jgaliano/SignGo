@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firma Digital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Estilos básicos para el template */
+        .pdf-page {
+            position: relative;
+            margin: 0;
+            padding: 0;
+            display: none;  /* Solo se muestra la página activa */
+        }
+        .dropped-item {
+            position: absolute;
+            cursor: pointer;
+            padding: 3px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 3px;
+        }
+        .delete-circle {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        /* Contenedor de los botones de navegación */
+        .pagination-buttons {
+            position: fixed;
+            bottom: 80px;  /* Ajustado para dejar espacio para el botón de firmar */
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: space-evenly; /* Poner los botones uno al lado del otro */
+            width: 100%;
+            z-index: 10;
+            align-items: center;
+        }
+        .pagination-buttons button {
+            margin: 0 10px;
+            padding: 8px 16px;
+            font-size: 14px; /* Reducir el tamaño de la fuente */
+        }
+        /* Contenedor para el botón Firmar */
+        .sign-button-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        .sign-button-container button {
+            font-size: 16px;
+            padding: 12px 20px;
+        }
+        /* Ajustes para que las páginas se redimensionen correctamente */
+        .pdf-page canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+        /* Asegura que los botones siempre estén en la parte inferior */
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        #documentsTabContent {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 120px; /* Espacio suficiente para los botones */
+            margin-left: 15px; /* Márgenes laterales */
+            margin-right: 15px; /* Márgenes laterales */
+        }
+        
+        /* Estilo para el cuadrito azul */
+        .draggable-box {
+            position: absolute;
+            background-color: blue;
+            border-radius: 5px;
+            cursor: pointer;
+            touch-action: none;  /* Impide el comportamiento por defecto de los gestos táctiles */
+        }
+
+                  /* OVERLAY */
+                  .overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: none;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                }
+        
+                .spinner-border {
+                    width: 3rem;
+                    height: 3rem;
+                    color: #ffffff;
+                }
+                /* OVERLAY */
+
+    </style>
+</head>
+<body>
+    <!-- OVERLAY -->
+    <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+        <div class="d-flex flex-column justify-content-center align-items-center h-100">
+            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;"></div>
+            <span class="mt-2 text-light">FIRMANDO...</span>
+        </div>
+    </div>
+    <!-- OVERLAY -->
+
+    <!-- MESSAGES -->
+    {% if messages %}
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        {% for message in messages %}
+            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header" style="color: white; background-color:{% if 'danger' in message.tags %}red{% elif 'success' in message.tags %}green{% elif 'warning' in message.tags %}orange{% else %}red{% endif %}">
+                    <strong class="me-auto">{% if 'danger' in message.tags %}Error{% endif %}</strong>
+                    <small></small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    {{ message }}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+      
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            const toastList = toastElList.map(function (toastEl) {
+                return new bootstrap.Toast(toastEl);
+            });
+            toastList.forEach(toast => toast.show());
+        });
+    </script>      
+{% endif %}
+<!-- MESSAGES -->
+    <hr>
+    <!-- Contenedor para los documentos -->
+    <div id="documentsTabContent">
+        <!-- Las páginas de los documentos se agregarán aquí dinámicamente -->
+    </div>
+
+    <!-- Contenedor de los botones de navegación -->
+    <div class="pagination-buttons">
+        <button id="prevButton" class="btn btn-secondary">Página Anterior</button>
+        <button id="nextButton" class="btn btn-primary">Página Siguiente</button>
+    </div>
+
+    <!-- Contenedor para el botón Firmar -->
+    <div class="sign-button-container">
+        <button data-bs-toggle="modal" data-bs-target="#exampleModal1" class="btn btn-success">Siguiente</button> <!-- Botón Firmar -->
+    </div>
+
+    <form id="positionsForm" method="POST" action="{% url 'verifyDocs' tokenEnvio %}">
+        {% csrf_token %}
+        <input type="hidden" name="positions" id="positionsInput">
+        <input type="hidden" name="userInput" id="userInput">
+        <input type="hidden" name="userpsw" id="userpsw">
+        <input type="hidden" name="userpin" id="userpin">
+        <input type="checkbox" style="display: none;" name="save_credentials" id="save_credentials">
+        <input type="checkbox" style="display: none;" name="firma_estatica" id="firma_estatica">
+    </form>
+
+    <!-- SECCIÓN DE MODAL CREDENCIALES -->
+<div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Ingrese Credenciales de Firma</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form class="needs-validation" id="form_firma">
+                <input type="hidden" name="selectedPage" id="selectedPage">
+                <input type="hidden" name="selectedPosition" id="selectedPosition">
+
+                <div class="mb-3">
+                    <label for="inputUsuario" class="form-label">Usuario</label>
+                    <input {% if isChecked %} value="{{ usuario_cert }}" {% endif %} name="inputUsuario" placeholder="Ingrese Usuario" type="text" class="form-control" id="inputUsuario" aria-describedby="emailHelp" required>
+                    <div class="invalid-feedback">Por favor, complete este campo.</div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="inputContraseña" class="form-label">Contraseña</label>
+                    <input {% if isChecked %} value="{{ pass_cert }}" {% endif %} name="inputContraseña" placeholder="Ingrese Contraeña" type="password" class="form-control" id="inputContraseña" required>
+                    <div class="invalid-feedback">Por favor, complete este campo.</div>
+                  </div>
+                  <div class="mb-3">
+                      <label for="inputPin" class="form-label">Codigo PIN</label>
+                      <input name="inputPin" placeholder="Ingrese PIN" type="password" class="form-control" id="inputPin" required>
+                      <div class="invalid-feedback">Por favor, complete este campo.</div>
+                  </div>
+
+                <div class="form-check mb-3">
+                    <input {% if isChecked %} checked {% endif %} class="form-check-input" type="checkbox" id="rememberCredentials" name="rememberCredentials">
+                    <label class="form-check-label" for="rememberCredentials">
+                        Recordar credenciales (Usuario y Contraseña)
+                    </label>
+                </div>
+
+                <div class="d-flex justify-content-center">
+                    <button type="button" id="signButton" class="btn btn-success">Firmar</button>
+                </div>
+              </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+        </div>
+    </div>
+    </div>
+<!-- SECCIÓN DE MODAL CREDENCIALES -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script>
+        const pdfFiles = {{ pdf_files|safe }};  // Array de archivos PDF
+        const firmantes = {{ firmantes|safe }};  // Array de firmantes
+        const firmantesContainer = document.getElementById('firmantes');
+        const documentsTabContent = document.getElementById('documentsTabContent');
+        const firmantesUsados = {};
+        const documentPages = {};
+
+        // Inicializar documentos PDF
+        pdfFiles.forEach((file, index) => {
+            const fileName = file.split('/').pop();
+            const loadingTask = pdfjsLib.getDocument(file);
+            loadingTask.promise.then((pdf) => {
+                documentPages[`document-${index}`] = Array.from({ length: pdf.numPages }, (_, i) => i + 1);
+
+                // Mostrar solo la primera página por defecto
+                let currentPage = 1;
+
+                const renderPage = (pageNumber) => {
+                    // Borrar la página anterior
+                    const existingPage = document.querySelector('.pdf-page');
+                    if (existingPage) {
+                        existingPage.remove();
+                    }
+
+                    const pageDiv = document.createElement('div');
+                    pageDiv.classList.add('pdf-page');
+                    pageDiv.dataset.pageNumber = pageNumber;
+                    documentsTabContent.appendChild(pageDiv);
+
+                    pdf.getPage(pageNumber).then((page) => {
+                        const viewport = page.getViewport({ scale: 1.5 });
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        const renderContext = { canvasContext: context, viewport: viewport };
+                        page.render(renderContext);
+                        pageDiv.appendChild(canvas);
+
+                        // Redimensionar todas las páginas para que se ajusten al ancho de la pantalla
+                        const canvasContainer = pageDiv.querySelector('canvas');
+                        const maxWidth = window.innerWidth - 40; // Márgenes laterales
+                        const scale = maxWidth / canvasContainer.width;
+                        canvasContainer.style.width = `${maxWidth}px`;
+                        canvasContainer.style.height = `${canvasContainer.height * scale}px`;
+
+                        pageDiv.style.display = 'block'; // Mostrar la página activa
+
+                        // Crear cuadro azul draggable
+                        const box = document.createElement('div');
+                        box.classList.add('draggable-box');
+                        pageDiv.appendChild(box);
+
+                        // Calcular dimensiones y posición para el cuadro azul
+                        const boxWidth = canvas.width * scale * 0.3;  // 30% del ancho de la página
+                        const boxHeight = canvas.height * scale * 0.1;  // 10% del alto de la página
+                        const centerX = (canvas.width * scale - boxWidth) / 2;
+                        const centerY = (canvas.height * scale - boxHeight) / 2;
+                        box.style.width = `${boxWidth}px`;
+                        box.style.height = `${boxHeight}px`;
+                        box.style.left = `${centerX}px`;
+                        box.style.top = `${centerY}px`;
+
+                        // Habilitar drag-and-drop para el cuadro azul
+                        let isDragging = false;
+                        let offsetX = 0;
+                        let offsetY = 0;
+
+                        box.addEventListener('touchstart', (e) => {
+                            isDragging = true;
+                            offsetX = e.touches[0].clientX - box.getBoundingClientRect().left;
+                            offsetY = e.touches[0].clientY - box.getBoundingClientRect().top;
+                        });
+
+                        document.addEventListener('touchmove', (e) => {
+                            if (isDragging) {
+                                const pageRect = pageDiv.getBoundingClientRect(); // Área de la página
+                                let left = e.touches[0].clientX - offsetX;
+                                let top = e.touches[0].clientY - offsetY;
+
+                                // Limitar los movimientos del cuadro dentro de la página
+                                left = Math.max(pageRect.left, Math.min(left, pageRect.right - boxWidth));
+                                top = Math.max(pageRect.top, Math.min(top, pageRect.bottom - boxHeight));
+
+                                box.style.left = `${left - pageRect.left}px`;
+                                box.style.top = `${top - pageRect.top}px`;
+                            }
+                        });
+
+                        document.addEventListener('touchend', () => {
+                            isDragging = false;
+                        });
+                    });
+                };
+
+                // Mostrar la primera página
+                renderPage(1);
+
+                // Botones de navegación
+                const prevButton = document.getElementById('prevButton');
+                const nextButton = document.getElementById('nextButton');
+                const signButton = document.getElementById('signButton');
+
+                prevButton.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage(currentPage);
+                    }
+                });
+
+                nextButton.addEventListener('click', () => {
+                    if (currentPage < pdf.numPages) {
+                        currentPage++;
+                        renderPage(currentPage);
+                    }
+                });
+
+                const positionsInput = document.getElementById('positionsInput');
+                const usuarioInput = document.getElementById('userInput');
+                const pwsInput = document.getElementById('userpsw');
+                const pinInput = document.getElementById('userpin');
+                const valoruser = document.getElementById('inputUsuario');
+                const valorpws = document.getElementById('inputContraseña');
+                const valorpin = document.getElementById('inputPin');
+
+                const valorcredenciales = document.getElementById('rememberCredentials');
+                const credencialesInput = document.getElementById('save_credentials');
+                // const firma_lote_system = document.getElementById('firma_estatica');
+                // const firma_lote_usuario = document.getElementById('firma_lote');
+
+                signButton.addEventListener('click', () => {
+                    
+                    // HIDE MODAL
+                    var miModal = document.getElementById('exampleModal1')
+                    miModal.style.display = "None"
+                    
+                    // SHOW SPINNER
+                    document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                    sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+
+                    const positions = [];
+
+                    const documentUrl = pdfFiles[0]; // Como solo hay un archivo, tomamos el primero
+                    const documentName = documentUrl.split('/').pop(); // Extraer el nombre del archivo de la URL
+                
+                    // Buscar todas las páginas activas en el contenedor
+                    document.querySelectorAll('.pdf-page').forEach((pageDiv, pageIndex) => {
+                        const pageRect = pageDiv.getBoundingClientRect();
+                        const pageWidth = pageRect.width;
+                        const pageHeight = pageRect.height;
+                
+                        const standardWidthInPoints = 612; // Ancho estándar en puntos de un PDF
+                        const dynamicHeightInPoints = (pageHeight / pageWidth) * standardWidthInPoints;
+                
+                        const scaleX = standardWidthInPoints / pageWidth;
+                        const scaleY = dynamicHeightInPoints / pageHeight;
+                
+                        // Buscar los elementos dentro de la página
+                        pageDiv.querySelectorAll('.draggable-box').forEach((item) => {
+                            const rect = item.getBoundingClientRect();
+                
+                            const x1 = (rect.left - pageRect.left) * scaleX;
+                            const y1 = (pageHeight - (rect.bottom - pageRect.top)) * scaleY;
+                
+                            const x2 = (rect.right - pageRect.left) * scaleX;
+                            const y2 = (pageHeight - (rect.top - pageRect.top)) * scaleY;
+                
+                            // Obtener el firmante asignado (si tiene)
+                            const firmanteId = item.dataset.firmanteId;
+                
+                            positions.push({
+                                firmante_id: firmanteId,
+                                document_url: documentUrl, 
+                                document_name: documentName,
+                                page: pageDiv.dataset.pageNumber, // Número de página
+                                x1: x1.toFixed(2),
+                                y1: y1.toFixed(2) - 21,
+                                x2: x2.toFixed(2),
+                                y2: y2.toFixed(2) - 21,
+                            });
+                        });
+                    });
+                
+                    // Verificar si hay posiciones calculadas
+                    if (positions.length === 0) {
+                        alert('No se encontraron firmas en el documento.');
+                    } else {
+                        // alert(`Posiciones calculadas:\n${JSON.stringify(positions, null, 2)}`);
+                        usuarioInput.value = valoruser.value
+                        pwsInput.value = valorpws.value
+                        pinInput.value = valorpin.value
+
+                        credencialesInput.checked  = valorcredenciales.checked
+                        // firma_lote_system.checked  = firma_lote_usuario.checked
+
+                        positionsInput.value = JSON.stringify(positions);
+                        document.getElementById('positionsForm').submit(); 
+                    }
+                });
+                
+
+            });
+        });
+
+        // OVERLAY
+        document.addEventListener("DOMContentLoaded", () => {
+            if (sessionStorage.getItem("showOverlay") === "true") {
+                document.getElementById("overlay").classList.add("d-none"); // Oculta el overlay
+                sessionStorage.removeItem("showOverlay"); // Limpia el estado
+            }
+        });
+
+        document.querySelectorAll(".validateButton").forEach(button => {
+            button.addEventListener("click", function() {
+                var miModal = document.getElementById('exampleModal1')
+                miModal.style.display = "None"
+                document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+            });
+        });
+        // OVERLAY
+    </script>
+
+    <!-- Scripts de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Estado de Firmas</title>
+  <link rel="stylesheet" href="/static/assets/css/core/libs.min.css">
+  <link rel="stylesheet" href="/static/assets/css/hope-ui.min.css?v=2.0.0">
+  <style>
+    .status-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      position: relative;
+    }
+    .status-item {
+      text-align: center;
+      width: 100px;
+    }
+    .status-box {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 8px;
+      font-weight: bold;
+      color: white;
+      position: relative;
+    }
+    .status-green {
+      background-color: #28a745;
+    }
+    .status-gray {
+      background-color: #6c757d;
+    }
+    .status-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: #dee2e6;
+      z-index: 0;
+    }
+    .status-connector {
+      width: 100%;
+      height: 5px;
+      background: #6c757d;
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .status-item:first-child .status-connector {
+      display: none; /* Oculta la línea para el primer elemento */
+    }
+    embed{
+      width: 98%;
+      height: 98%;
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    <h1 class="text-center mb-4">Progreso del Envío</h1>
+    <div class="card">
+      <div class="card-body">
+        <!-- <h3 class="text-center mb-3">Progreso del Envío</h3> -->
+        <!-- Línea de estado -->
+        <div class="status-container">
+          {% for firmante in firmantes %}
+          <div class="status-item">
+            <div class="status-box {% if firmante.estado == 'Sí' %}status-green{% else %}status-gray{% endif %}">
+              {{ loop.index }}
+            </div>
+            {% if not forloop.last %}
+            <div class="status-connector"></div>
+            {% endif %}
+            <small>{{ firmante.nombre }}</small>
+          </div>
+          {% endfor %}
+          <div class="status-line"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+        <!-- Resultados de la búsqueda -->
+        <div id="resultados">
+            <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+            <section class="table_outer">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-12">
+                            <div class="card border-0 shadow">
+                                <div class="card-body">
+                                  <div class="text-center"><strong><label for="" style="font-size: 25px;">Detalle Firmantes</label></strong></div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0 ">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <!-- <th scope="col">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" value=""
+                                                                id="select_all" />
+                                                        </div>
+                                                    </th> -->
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">NOMBRE FIRMANTE</th>
+                                                    <th scope="col">CORREO</th>
+                                                    <th scope="col">TIPO FIRMA</th>
+                                                    <th scope="col">FECHA<br>ENVIO</th>
+                                                    <th scope="col">ESTADO<br>ENVÍO</th>
+                                                    <th scope="col">FECHA<br>FIRMA</th>
+                                                    <th scope="col">ESTADO<br>FIRMA</th>
+                                                    <!-- <th scope="col">ACCIÓN</th> -->
+                                                </tr>
+                                            </thead>
+                                            {% for firmante in lista_firmantes %}
+                                            <tbody>
+                                                <tr>
+                                                    <!-- <th scope="row">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input checkbox" type="checkbox" value=""
+                                                                id="flexCheckDefault1" />
+                                                        </div>
+                                                    </th> -->
+                                                    <td>{{ forloop.counter }}</td>
+                                                    <td>{{ firmante.nombres }} {{ firmante.apellidos}}</td>
+                                                    <td>{{ firmante.correo }}</td><label style="color: #28a745;"></label>
+                                                    <td>{% if firmante.tipo_firma == 'oneshot' %} One-Shot {% else %}Larga Duración{% endif %}</td>
+                                                    <td>{% if firmante.fecha_enviado == None %}<label style="color: #a37500;">Pendiente</label>{% else %}{{ firmante.fecha_enviado }}{% endif %}</td>
+                                                    <td>{% if firmante.is_enviado %}<label style="color: #006317;">Enviado</label>{% else %}<label style="color: #a37500;">Pendiente</label>{% endif %}</td>
+                                                    <td>{% if firmante.fecha_firmado == None %}<label style="color: #a37500;">Pendiente</label>{% else %}{{ firmante.fecha_firmado }}{% endif %}</td>
+                                                    <td>{% if firmante.is_firmado %}<label style="color: #006317;">Firmado</label>{% else %}<label style="color: #9f7200;">Pendiente</label>{% endif %}</td>
+                                                    <!-- <td> -->
+                                                        <!-- <a href="/flujo_firma/progreso_flujo/{{envio.TokenAuth}}" class="btn btn-success btn-sm px-2">
+                                                            <i class="fa-solid fa-eye">
+                                                                <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </a> -->
+                                                        <!-- <a href="{{ data.url_archivo }}" type="button" class="btn btn-primary btn-sm px-2 " download>
+                                                            <i class="fa-solid fa-eye">
+                                                                <img src="/static/icos/download_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </a> -->
+                                                        <!-- <button type="button" class="btn btn-danger btn-sm px-2">
+                                                            <i class="fa-solid fa-trash">
+                                                                <img src="/static/icos/delete_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </button>
+                                                        <button 
+                                                            type="button" 
+                                                            class="btn btn-dark btn-sm px-2" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#exampleModal"
+                                                            data-url="https://signgo.online/watchDocument/{{ data.TokenArchivo }}"
+                                                            data-nombre="{{ data.NombreArchivo }}"
+                                                            onclick="cargarDatosModal(this)">
+                                                            <i class="fa-solid fa-trash">
+                                                                <img src="/static/icos/share_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </button> -->
+                                                    <!-- </td> -->
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="6" class="text-center">No hay documentos firmados</td>
+                                                </tr>
+                                            </tbody>
+                                            {% endfor %}
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="resultados">
+          <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+          <section class="table_outer">
+              <div class="container">
+                  <div class="row justify-content-center">
+                      <div class="col-12">
+                          <div class="card border-0 shadow">
+                              <div class="card-body">
+                                <div class="text-center"><strong><label for="" style="font-size: 25px;">Detalle Documentos</label></strong></div>
+                                  <div class="table-responsive">
+                                      <table class="table table-hover mb-0 ">
+                                          <thead class="table-light">
+                                              <tr>
+                                                  <!-- <th scope="col">
+                                                      <div class="form-check">
+                                                          <input class="form-check-input" type="checkbox" value=""
+                                                              id="select_all" />
+                                                      </div>
+                                                  </th> -->
+                                                  <th scope="col">#</th>
+                                                  <th scope="col">NOMBRE DOCUMENTO</th>
+                                                  <th scope="col">ACCIÓN</th>
+                                              </tr>
+                                          </thead>
+                                          {% for documento in documentos %}
+                                          <tbody>
+                                              <tr>
+                                                  <!-- <th scope="row">
+                                                      <div class="form-check">
+                                                          <input class="form-check-input checkbox" type="checkbox" value=""
+                                                              id="flexCheckDefault1" />
+                                                      </div>
+                                                  </th> -->
+                                                  <td>{{ forloop.counter }}</td>
+                                                  <td>{{ documento.nombre_documento }}</td>
+                                                  <td>
+                                                      <button onclick="mostrar('{{ documento.url_documento }}')" data-bs-toggle="modal" data-bs-target="#exampleModalFile" class="btn btn-success btn-sm px-2">
+                                                        <i class="fa-solid fa-eye">
+                                                            <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                        </i>
+                                                      </button>
+                                                  </td>
+                                              </tr>
+                                              {% empty %}
+                                              <tr>
+                                                  <td colspan="6" class="text-center">No hay documentos firmados</td>
+                                              </tr>
+                                          </tbody>
+                                          {% endfor %}
+                                      </table>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </section>
+      </div>
+
+    <!-- Modal para mostrar documentos  -->
+    <div class="modal fade" id="exampleModalFile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable modal-lg">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Previsualización</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div id="contenedorFile" class="modal-body" style="height: 80vh;"></div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+              </div>
+        </div>
+      </div>
+  </div>
+  <!-- Termina modal para mostrar documetnos -->
+
+
+  <script>
+    const firmantes = {{ firmantes_find|safe }};
+    const statusContainer = document.querySelector('.status-container');
+
+    firmantes.forEach((firmante, index) => {
+        const item = document.createElement('div');
+        item.className = 'status-item';
+        item.innerHTML = `
+            <div class="status-box ${firmante.estado === 'True' ? 'status-green' : 'status-gray'}">
+                ${index + 1}
+            </div>
+            <small>${firmante.nombres}</small>
+        `;
+        statusContainer.appendChild(item);
+    });
+
+    function mostrar(url){
+      var alertWrappers = document.querySelectorAll('.alert-wrapper');
+      alertWrappers.forEach(function(wrapper) {
+          wrapper.remove();
+      });
+      var caja = document.getElementById('contenedorFile')
+      var embed = document.createElement('embed')
+      embed.src = url
+      embed.type = "application/pdf"
+      caja.innerHTML = ''
+      caja.appendChild(embed)
+  }
+
+  function copiarLink(){
+    var copiarTexto = document.getElementById('linkToCopy')
+    copiarTexto.select()
+    copiarTexto.setSelectionRange(0, 99999);
+    
+    document.execCommand("copy");
+
+    showAlert("Enlace copiado al portapeles", "success")
+}
+
+function cargarDatosModal(button){
+  const url = button.getAttribute('data-url');
+  const nombreArchivo = button.getAttribute('data-nombre');
+
+  const linkInput = document.getElementById('linkToCopy');
+  linkInput.value = url;
+
+  const tituloModal = document.getElementById('exampleModalLabel');
+  tituloModal.textContent = `Compartir: ${nombreArchivo}`;
+}
+
+</script>
+<script src="/static/js/signbox/historial.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{% endblock %}

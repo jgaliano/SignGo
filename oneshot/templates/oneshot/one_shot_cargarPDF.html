@@ -1,0 +1,40 @@
+{% extends 'app_base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CargarPDF</title>
+    <link rel="stylesheet" href="/static/styles/oneshot/one_shot_cargarPDF.css">
+</head>
+<body>
+    <br>
+        <div class="caja">
+            <div class="box" id="box">
+                <h3 id="cargar">Cargue sus documentos PDF</h3>
+            </div>
+            
+            <form method="post" enctype="multipart/form-data">
+                <div id="archivos">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="pdf_files">
+                        <i class="fas fa-cloud-upload-alt"></i><p>Arratre o seleccione sus documentos</p>
+                    </label>
+                    <br>
+                    <input class="form-control" type="file" name="pdf_files" id="pdf_files" accept=".pdf" multiple style="display: none;">
+                </div></div>
+                <div class="box_texto">
+                    <p id="archivos_cargados">No se han seleccionado archivos</p>
+                </div>
+                <div class="caja">
+                    <button onclick="mostrarSpinner()" type="submit" class="btn_subir" id="btn_enviar">Continuar</button>
+                </div>
+            </form>
+            <div id="spinner" class="spinner hidden"></div>
+        </div>
+    <script src="/static/js/oneshot/one_shot_cargarPDF.js"></script>
+</body>
+</html>
+{% endblock %}

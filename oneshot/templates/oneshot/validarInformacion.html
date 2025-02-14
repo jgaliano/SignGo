@@ -1,0 +1,111 @@
+{% extends 'app_base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/styles/oneshot/validarInformacion.css">
+</head>
+<body>
+    <div id="liveAlertPlaceholder"></div>
+    <div class="container">
+        <h2 class="display-5 mb-5 text-center">Aprobar Video Identificación Oneshot</h2>
+        <div class="d-flex justify-content-center">
+            <video controls muted width="30%">
+                <source src="/media/oneshot/Video/VideoIdentificaciones/video.mp4" type="video/mp4">
+            </video>
+            <div class="contenedorImg">
+                <img src="/media/oneshot/Video/VideoIdentificaciones/descarga (1).jfif" alt="">
+                <img src="/media/oneshot/Video/VideoIdentificaciones/descarga.jfif" alt="">
+            </div>
+        </div><br>
+
+        <div>
+            <h2 class="display-8 mb-5 text-center">Confirmar Información</h2>
+            <form action={% url "solicitud" %} class="row g-3" method="post" id="formulario" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="col-md-4">
+                  <label for="inputName" class="form-label">Primer Nombre</label>
+                  <input value="{{ nombre1 }}" type="text" class="form-control" id="inputName" name="inputName" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Segundo Nombre</label>
+                    <input value="{{ nombre2 }}" type="text" class="form-control" id="inputSecondName" name="inputSecondName" required>
+                  </div>
+                <div class="col-md-4">
+                    <label for="inputApellido1" class="form-label">Primer Apellido</label>
+                    <input value="{{ apellido1 }}" type="text" class="form-control" id="inputApellido1" name="inputApellido1" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="inputApellido2" class="form-label">Segundo Apellido</label>
+                    <input value="{{ apellido2 }}" type="text" class="form-control" id="inputApellido2" name="inputApellido2">
+                </div>
+                <div class="col-md-4">
+                    <label for="inputDPI" class="form-label">DPI</label>
+                    <input value="{{ dpi }}" type="number" class="form-control" id="inputDPI" name="inputDPI" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="inputEmail" class="form-label">Email</label>
+                    <input value="{{ email }}" type="email" class="form-control" id="inputEmail" name="inputEmail" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="inputCelular" class="form-label">Celular</label>
+                    <input value="{{ celular }}" type="number" class="form-control" id="inputCelular" name="inputCelular" required>
+                </div>
+                <div class="col-8">
+                    <label for="inputAddress" class="form-label">Dirección</label>
+                    <input value="{{ direccion }}" type="text" class="form-control" id="inputAddress" name="inputAddress" required>
+                </div>
+            </form>
+        </div><br>
+
+        <div class="d-flex justify-content-center">
+            <!-- <button class="btn btn-dark">Aprobar Video Identificación</button> -->
+            <form method="post">
+                {% csrf_token %}
+                <button class="btn btn-dark" type="submit" id="validateButton">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true" style="display: none;"></span>
+                    <span role="status">Aprobar Video Identificación</span>
+                </button>
+            </form>
+        </div>
+
+    </div>
+    <div id="spinner" class="spinner hidden"></div>
+    <script src="/static/js/oneshot/one_shot_home.js"></script>
+    <script>
+        document.getElementById("validateButton").addEventListener("click", function() {
+            this.querySelector(".spinner-border").style.display = "inline-block";
+
+            setTimeout(() => {
+                this.disabled = true;
+            }, 1);
+        });
+
+        {% if messages %}
+          {% for message in messages %}
+              showAlert("{{ message }}", "danger");
+          {% endfor %}
+      {% endif %}
+
+    function showAlert(message, type) {
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible" role="alert">'
+            + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+        document.getElementById('liveAlertPlaceholder').append(wrapper);
+
+        setTimeout(() => {
+            wrapper.querySelector('.alert').classList.add('alert-fadeout');
+            setTimeout(() => {
+                wrapper.remove();
+            }, 10000);
+        }, 10000);
+    }
+
+    </script>
+</body>
+</html>
+{% endblock %}

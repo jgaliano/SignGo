@@ -1,0 +1,12 @@
+a{
+    text-decoration: none;
+}
+
+.contenedor-div{
+    gap: 20px;
+}
+
+.contenedor-select-div{
+    display: flex;
+    width: 25%;
+}

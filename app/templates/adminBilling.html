@@ -1,0 +1,250 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Billing</title>
+    <style>
+        .centrar{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+        #sectionProd{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #buttonUpdate{
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+        }
+        .tituloCredenciales{
+            color: #0063ae;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        #buttonUpdateSandbox{
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+        }
+        .sectionSandbox{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #credSelect{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .contenedorSelect{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #selectCred{
+            background-color: #398a4d;
+            color: white;
+        }
+        .btnsave{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .img_apis{
+            height: 80px;
+            width: 80px;
+            margin-left: 35%;
+            margin-top: 10%;
+            margin-bottom: 10%;
+        }
+        .card{
+            margin-right: 3%;
+        }
+        .tipo_credencial{
+            color: #0063ae;
+        }
+        .card_centrar{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+      <div class="container mt-5">
+        <div>
+            <h2 class="display-5 mb-5 text-center">Credenciales de Billing</h2>
+        </div>
+
+        <div class="centrar">
+            <div class="card" style="width: 18rem;">
+                <div class="img_apis">
+                    <img src="/media/app/img/oneshot_logo.png" class="card-img-top" alt="...">
+                </div>
+                <div class="card-body">
+                    <div class="card_centrar">
+                        <h5 class="card-title">API Oneshot</h5>
+                        <p class="card-text">Credenciales de Billing API OneShot</p>
+                        <button type="button" onclick="oneshot('{{ OneshotSandbox.user }}', '{{ OneshotSandbox.password }}', '{{ OneshotSandbox.status }}', '{{ OneshotProd.user }}', '{{ OneshotProd.password }}', '{{ OneshotProd.status }}')" class="btn btn-dark" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#exampleModal">Consultar</button>
+                    </div>
+                  
+                </div>
+              </div>
+              <div class="card" style="width: 18rem;">
+                <div class="img_apis">
+                    <img src="/media/app/img/signbox_logo.png" class="card-img-top" alt="...">
+                </div>
+                <div class="card-body">
+                    <div class="card_centrar">
+                        <h5 class="card-title">API Signbox</h5>
+                        <p class="card-text">Credenciales de Billing API SignBox</p>
+                        <button type="button" onclick="signbox('{{ SignboxSandbox.user }}', '{{ SignboxSandbox.password }}', '{{ SignboxSandbox.status }}', '{{ SignboxProd.user }}', '{{ SignboxProd.password }}', '{{ SignboxProd.status }}')" class="btn btn-dark" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#exampleModal">Consultar</button>
+                    </div>
+                </div>
+              </div>
+        </div>
+      </div> 
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel"><label id="showName"></label></h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="contenedor2" class="modal-body" style="height: 80vh;">
+                    <div id="liveAlertPlaceholder"></div>
+                     <div class="container"><br>
+                        <div>
+                            <label for="" class="tipo_credencial"><strong>Producción</strong></label><br>
+                            <label for=""><small>Usuario</small>
+                                <input id="userProd" name="userProd" class="form-control" type="text" value=""> 
+                            </label>
+                            <label for=""><small>Contraseña</small>
+                                <input id="passProd" name="passProd" class="form-control" type="password" value=""> 
+                            </label>
+                        </div><br><br>
+                        
+                        <div>
+                            <label for="" class="tipo_credencial"><strong>Desarrollo</strong></label><br>
+                            <label for=""><small>Usuario</small>
+                                <input id="userSandbox" name="userSandbox" class="form-control" type="text" value=""> 
+                            </label>
+                            <label for=""><small>Contraseña</small>
+                                <input id="passSandbox" name="passSandbox" class="form-control" type="password" value=""> 
+                            </label>
+                        </div><br><br>
+    
+                        <div>
+                            <label for="" class="tipo_credencial"><strong>Credenciales Activas</strong></label><br>
+                            <select id="selectCredentials" name="selectCredentials" class="form-select" aria-label="Default select example"></select>
+                        </div>
+                     </div>            
+                </div>
+                <div class="modal-footer">
+                    <input type="text" id="credentialsSelection" name="credentialsSelection" style="display: none;">
+                    <button type="submit" class="btn btn-dark" id="liveAler">Guardar Cambios</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+      </form>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        function signbox(SandboxUser, SandboxPass, SandboxStatus, ProdUser, ProdPass, ProdStatus){
+            var inputUserProd = document.getElementById('userProd')
+            var inputPassProd = document.getElementById('passProd')
+            var inputUserSandbox = document.getElementById('userSandbox')
+            var inputPassSandbox = document.getElementById('passSandbox')
+            var nameModal = document.getElementById('showName')
+            var selectEnv = document.getElementById('selectCredentials')
+            var credentials = document.getElementById('credentialsSelection')
+
+            selectEnv.innerHTML = ""
+
+            inputUserSandbox.value = SandboxUser
+            inputPassSandbox.value = SandboxPass
+            inputUserProd.value = ProdUser
+            inputPassProd.value = ProdPass
+            nameModal.innerHTML = "Credenciales de Billing API SignBox"
+
+            var sandboxOption = document.createElement("option")
+            sandboxOption.value = "0"
+            sandboxOption.text = "Credenciales de Desarrollo"
+
+            var prodOption = document.createElement("option")
+            prodOption.value = "1"
+            prodOption.text = "Credenciales de Producción"
+
+            selectEnv.add(prodOption);
+            selectEnv.add(sandboxOption);
+
+            if (SandboxStatus == "1"){
+                selectEnv.value = "0";
+            }
+            else{
+                selectEnv.value = "1";
+            }
+
+            credentials.value = "signbox"
+
+        }
+
+        function oneshot(SandboxUser, SandboxPass, SandboxStatus, ProdUser, ProdPass, ProdStatus){
+            var inputUserProd = document.getElementById('userProd')
+            var inputPassProd = document.getElementById('passProd')
+            var inputUserSandbox = document.getElementById('userSandbox')
+            var inputPassSandbox = document.getElementById('passSandbox')
+            var nameModal = document.getElementById('showName')
+            var selectEnv = document.getElementById('selectCredentials')
+            var credentials = document.getElementById('credentialsSelection')
+
+            selectEnv.innerHTML = ""
+
+            inputUserSandbox.value = SandboxUser
+            inputPassSandbox.value = SandboxPass
+            inputUserProd.value = ProdUser
+            inputPassProd.value = ProdPass
+            nameModal.innerHTML = "Credenciales de Billing API One-Shot"
+
+            var sandboxOption = document.createElement("option")
+            sandboxOption.value = "0"
+            sandboxOption.text = "Credenciales de Desarrollo"
+
+            var prodOption = document.createElement("option")
+            prodOption.value = "1"
+            prodOption.text = "Credenciales de Producción"
+
+            selectEnv.add(prodOption);
+            selectEnv.add(sandboxOption);
+
+            if (SandboxStatus == "1"){
+                selectEnv.value = "0";
+            }
+            else{
+                selectEnv.value = "1";
+            }
+
+            credentials.value = "oneshot"
+        }
+    </script>
+</body>
+</html>
+{% endblock %}

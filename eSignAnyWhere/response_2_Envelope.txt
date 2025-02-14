@@ -1,0 +1,46 @@
+{
+    "Id": "1203c676-a02f-461b-a3a0-4994b58b2c36",
+    "EnvelopeStatus": "Completed",
+    "Name": "Test Jhonatan",
+    "SentDate": "2024-10-09T18:28:51+00:00",
+    "Activities": [
+        {
+            "Id": "bc00aafe-e780-4d7f-8057-dd0846ee5820",
+            "Status": "Completed",
+            "FinishedDate": "2024-10-09T18:35:17+00:00",
+            "OpenedDate": "2024-10-09T18:35:00+00:00",
+            "Action": {
+                "Sign": {
+                    "ContactInformation": {
+                        "Email": "jgaliano@ccg.gt",
+                        "GivenName": "Jhonatan",
+                        "Surname": "Galiano",
+                        "LanguageCode": "ES"
+                    },
+                    "SigningGroup": 1
+                }
+            }
+        },
+        {
+            "Id": "c7e98044-5e38-4a98-8956-2eb20dfea36e",
+            "Status": "Completed",
+            "FinishedDate": "2024-10-09T18:35:22+00:00",
+            "Action": {
+                "SendCopy": {
+                    "ContactInformation": {
+                        "Email": "jgaliano@ccg.gt",
+                        "GivenName": "Galiano",
+                        "Surname": "Test",
+                        "LanguageCode": "ES"
+                    },
+                    "CopyingGroup": 2
+                }
+            }
+        }
+    ],
+    "SenderUserInformation": {
+        "Email": "jgaliano@ccg.gt",
+        "GivenName": "Jhonatan",
+        "Surname": "Galiano"
+    }
+}

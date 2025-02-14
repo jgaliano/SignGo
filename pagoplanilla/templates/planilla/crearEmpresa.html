@@ -1,0 +1,80 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Empresa</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <!-- Sección de creación de empresa -->
+         <br>
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Crear Empresa</h2>
+                <form id="crear-empresa-form" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nombreEmpresa" class="form-label">Nombre de la Empresa</label>
+                            <input name="nombreEmpresa" type="text" class="form-control" id="nombreEmpresa" placeholder="Nombre de la Empresa" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="nit" class="form-label">NIT</label>
+                            <input name="nit" type="text" class="form-control" id="nit" placeholder="NIT" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="ciudad" class="form-label">Ciudad</label>
+                            <input name="ciudad" type="text" class="form-control" id="ciudad" placeholder="Ciudad" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sector" class="form-label">Sector</label>
+                            <input name="sector" type="text" class="form-control" id="sector" placeholder="Sector" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha de Registro</label>
+                            <input type="date" class="form-control" id="fechaRegistro" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select name="estado" class="form-select" id="estado" required>
+                                <option value="">Seleccione...</option>
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">Guardar Empresa</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelar()">Regresar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // document.getElementById("crear-empresa-form").addEventListener("submit", function(event) {
+            // event.preventDefault();
+            // Aquí puedes agregar la lógica para enviar los datos al servidor
+            // alert("Empresa creada con éxito");
+        // });
+
+        function cancelar() {
+            window.history.back(); // Regresar a la página anterior
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo</title>
+    <link rel="stylesheet" href="/static/styles/signbox/echo.css">
+</head>
+<body>
+    <br>
+    <div class="container">
+        <div class="box">
+            <form action={% url "echo" %} method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-dark">
+                    Probar Conexión
+                </button>
+            </form>
+            <br>
+            <p id="escuchar">{{ data }}</p>
+        </div>
+    <div>       
+        </div>
+    </div>
+</body>
+</html>
+{% endblock %}
+
+
+
+
+

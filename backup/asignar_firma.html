@@ -1,0 +1,222 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<style>
+  .firmante-item {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+  }
+  .firmante-item:hover {
+      background-color: #007bff;
+      color: white;
+  }
+  .delete-circle {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: red;
+      color: white;
+      text-align: center;
+      line-height: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      z-index: 10;
+  }
+  .dropped-item {
+      position: absolute;
+      background-color: rgba(0, 123, 255, 0.5);
+      color: white;
+      width: 150px;
+      height: 100px;
+      text-align: center;
+      line-height: 100px;
+      font-size: 16px;
+      border-radius: 5px;
+      transform: translate(-50%, -50%);
+      font-weight: bold;
+      cursor: pointer;
+      padding: 5px;
+      box-sizing: border-box;
+      z-index: 5;
+  }
+  .btn-next {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-left: 10px;
+  }
+  .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  }
+</style>
+
+<div class="container py-5">
+    <header class="mb-4">
+        <h1 class="text-primary">Asignación de Firmas</h1>
+        <p class="text-secondary">Arrastra los nombres de los firmantes hacia el lugar donde deben firmar en los documentos.</p>
+    </header>
+    <div class="header-container">
+      <h3></h3>
+      <button class="btn-next" id="nextButton">Siguiente</button>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <h4>Firmantes</h4>
+            <div id="firmantes" class="bg-light p-3 rounded shadow-sm"></div>
+        </div>
+        <div class="col-md-9">
+            <h4>Documentos</h4>
+            <ul class="nav nav-tabs" id="documentsTab" role="tablist"></ul>
+            <div class="tab-content mt-3" id="documentsTabContent"></div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script>
+  const pdfFiles = {{ pdf_files|safe }};
+  const firmantes = {{ firmantes|safe }};
+  const firmantesContainer = document.getElementById('firmantes');
+  const documentsTabContent = document.getElementById('documentsTabContent');
+  const firmantesUsados = {};
+  const documentPages = {};
+
+  pdfFiles.forEach((_, index) => {
+      firmantesUsados[`document-${index}`] = new Set();
+      documentPages[`document-${index}`] = [];
+  });
+
+  firmantes.forEach((firmante) => {
+      const firmanteItem = document.createElement('div');
+      firmanteItem.classList.add('firmante-item', 'mb-2');
+      firmanteItem.textContent = firmante.name;
+      firmantesContainer.appendChild(firmanteItem);
+      firmanteItem.draggable = true;
+      firmanteItem.dataset.firmanteName = firmante.name;
+      firmanteItem.addEventListener('dragstart', (event) => {
+          const activeTab = document.querySelector('.nav-link.active');
+          const tabId = activeTab.id;
+          if (!firmantesUsados[tabId].has(firmante.name)) {
+              event.dataTransfer.setData('text/plain', firmante.name);
+          } else {
+              event.preventDefault();
+          }
+      });
+  });
+
+  pdfFiles.forEach((file, index) => {
+      const fileName = file.split('/').pop();  // Obtener el nombre del archivo
+      const titleDiv = document.createElement('h5');
+      titleDiv.classList.add('document-title', 'my-3');
+      titleDiv.textContent = `Archivo: ${fileName}`; // Nombre del archivo
+      documentsTabContent.appendChild(titleDiv);
+
+      const loadingTask = pdfjsLib.getDocument(file);
+      loadingTask.promise.then((pdf) => {
+          documentPages[`document-${index}`] = Array.from({ length: pdf.numPages }, (_, i) => i + 1); // Guardar número de páginas
+
+          for (let i = 1; i <= pdf.numPages; i++) {
+              const pageDiv = document.createElement('div');
+              pageDiv.classList.add('pdf-page', 'my-3', 'p-3', 'border', 'rounded', 'bg-white', 'position-relative');
+              documentsTabContent.appendChild(pageDiv);
+
+              pdf.getPage(i).then((page) => {
+                  const viewport = page.getViewport({ scale: 1.5 });
+                  const canvas = document.createElement('canvas');
+                  const context = canvas.getContext('2d');
+                  canvas.height = viewport.height;
+                  canvas.width = viewport.width;
+                  const renderContext = { canvasContext: context, viewport: viewport };
+                  page.render(renderContext);
+                  pageDiv.appendChild(canvas);
+
+                  pageDiv.addEventListener('dragover', (event) => event.preventDefault());
+                  pageDiv.addEventListener('drop', (event) => {
+                      const firmanteName = event.dataTransfer.getData('text/plain');
+                      const rect = pageDiv.getBoundingClientRect();
+                      const x = event.clientX - rect.left;
+                      const y = event.clientY - rect.top;
+
+                      const dropDiv = document.createElement('div');
+                      dropDiv.classList.add('dropped-item');
+                      dropDiv.textContent = firmanteName;
+                      dropDiv.style.left = `${x}px`;
+                      dropDiv.style.top = `${y}px`;
+
+                      const deleteCircle = document.createElement('div');
+                      deleteCircle.classList.add('delete-circle');
+                      deleteCircle.textContent = 'X';
+                      deleteCircle.addEventListener('click', () => {
+                          pageDiv.removeChild(dropDiv);
+                          firmantesUsados[`document-${index}`].delete(firmanteName);
+                      });
+
+                      dropDiv.appendChild(deleteCircle);
+                      pageDiv.appendChild(dropDiv);
+
+                      firmantesUsados[`document-${index}`].add(firmanteName);
+                  });
+              });
+          }
+      });
+  });
+
+  // Función para manejar el botón "Siguiente"
+  const btnNext = document.getElementById('nextButton');
+
+  btnNext.addEventListener('click', () => {
+      const positions = [];
+      pdfFiles.forEach((file, index) => {
+          const tabId = `document-${index}`;
+          const tabPane = document.getElementById(`document-content-${index}`);
+          const droppedItems = tabPane.querySelectorAll('.dropped-item');
+
+          droppedItems.forEach((item) => {
+              const firmanteName = item.textContent;
+              const rect = item.getBoundingClientRect();
+              const pageIndex = documentPages[tabId].find(page => rect.top <= page * 100); // Aquí calculamos la página correcta
+
+              positions.push({
+                  firmante: firmanteName,
+                  document: index + 1,
+                  page: pageIndex || 1,  // Asignar la página que contiene el marcador
+                  position: {
+                      x: rect.left,
+                      y: rect.top
+                  }
+              });
+          });
+      });
+
+      // Imprimir las posiciones en la consola para verificación
+      console.log(JSON.stringify(positions));
+
+      // Enviar los datos al backend
+      fetch('/ruta-al-backend', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(positions)
+      })
+      .then((response) => response.json())
+      .then((data) => {
+          console.log('Datos enviados correctamente:', data);
+      })
+      .catch((error) => {
+          console.error('Error al enviar los datos:', error);
+      });
+  });
+</script>
+
+{% endblock %}

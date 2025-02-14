@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF.js Example</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        .pdf-container {
+            position: relative;
+            display: inline-block;
+            border: 1px solid black;
+        }
+
+        #pdf-render {
+            display: block;
+        }
+
+        #floating-box {
+            width: 100px;
+            height: 50px;
+            background-color: rgba(0, 200, 255, 0.322);
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: move;
+            display: none; /* Oculto inicialmente */
+        }
+
+        .d-flex {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+    <br>
+    <div class="d-flex">
+        <div class="pdf-container">
+            <canvas id="pdf-render"></canvas>
+            <div id="floating-box"></div>
+        </div>
+    </div>
+    
+    <div id="controls" class="d-flex">
+        <button class="btn btn-dark" id="prev-page">Página Anterior</button>
+        <button class="btn btn-dark" id="next-page">Siguiente Página</button>
+        <button class="btn btn-dark" id="log-info">Imprimir Coordenadas</button>
+        <button type="button" class="btn btn-dark" id="toggle-visibility">Habilitar Personalización</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 0.8, 
+            canvas = document.getElementById('pdf-render'),
+            ctx = canvas.getContext('2d');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const pdfPath = '/media/signbox/FilesNoFirmados/114851290503361/Decreto_47-2008.pdf'; // Ruta al archivo PDF en el servidor
+
+            pdfjsLib.getDocument(pdfPath).promise.then(function(pdfDoc_) {
+                pdfDoc = pdfDoc_;
+                renderPage(pageNum);
+            }).catch(function(error) {
+                console.error('Error al cargar el PDF: ', error);
+            });
+        });
+
+        function renderPage(num) {
+            pageRendering = true;
+
+            pdfDoc.getPage(num).then((page) => {
+                const viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+
+                const renderTask = page.render(renderContext);
+
+                renderTask.promise.then(() => {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        function onPrevPage() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+
+        function onNextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+
+        function logInfo() {
+            const floatingBox = document.getElementById('floating-box');
+            const pdfContainer = document.querySelector('.pdf-container');
+            
+            const left = floatingBox.offsetLeft;
+            const top = floatingBox.offsetTop;
+            
+            const invertedTop = pdfContainer.offsetHeight - top - floatingBox.offsetHeight;
+            const añadido = (invertedTop * 0.3) + invertedTop
+            console.log(`Página actual: ${pageNum}`);
+            console.log(`Coordenadas del rectángulo flotante: Left: ${left}px, Top (inverso): ${invertedTop}px`);
+            console.log(añadido)
+        }
+
+        function toggleVisibility() {
+            const floatingBox = document.getElementById('floating-box');
+            const isHidden = window.getComputedStyle(floatingBox).display === 'none';
+        
+            if (isHidden) {
+                floatingBox.style.display = 'block';
+            } else {
+                floatingBox.style.display = 'none';
+            }
+        }
+
+        document.getElementById('prev-page').addEventListener('click', onPrevPage);
+        document.getElementById('next-page').addEventListener('click', onNextPage);
+        document.getElementById('log-info').addEventListener('click', logInfo);
+        document.getElementById('toggle-visibility').addEventListener('click', toggleVisibility);
+
+        const floatingBox = document.getElementById('floating-box');
+        const pdfContainer = document.querySelector('.pdf-container');
+
+        let isDragging = false,
+            startX, startY, initialX, initialY;
+
+        floatingBox.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialX = floatingBox.offsetLeft;
+            initialY = floatingBox.offsetTop;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                const newLeft = Math.max(0, Math.min(initialX + dx, pdfContainer.offsetWidth - floatingBox.offsetWidth));
+                const newTop = Math.max(0, Math.min(initialY + dy, pdfContainer.offsetHeight - floatingBox.offsetHeight));
+
+                floatingBox.style.left = newLeft + 'px';
+                floatingBox.style.top = newTop + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    </script>
+</body>
+</html>

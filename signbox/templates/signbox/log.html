@@ -1,0 +1,45 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/static/styles/signbox/log.css">
+</head>
+<body>
+    <br>
+    <div class="cajaContent">
+        <div class="container">
+            <table class="table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Id</th>
+                        <th>Date</th>
+                        <!-- <th>Transacción</th> -->
+                        <th>Usuario</th>
+                        <th>Name File</th>
+                        <th>Lote</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in resultados %}
+                    <tr>
+                        <td>{{data.0}}</td>
+                        <td>{{data.2}}</td>
+                        <!-- <td>{{data.1}}</td> -->
+                        <td>{{data.6}}</td>
+                        <td>{{data.4}}</td>
+                        <td>{{data.5}}</td>
+                        <td>{{data.3}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+{% endblock %}

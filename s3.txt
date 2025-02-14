@@ -1,0 +1,74 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::signgo-bucket/*",
+            "Condition": {
+                "StringLike": {
+                    "aws:Referer": [
+                        "http://signgo.com.gt/*",
+                        "https://signgo.com.gt/*"
+                    ]
+                }
+            }
+        }
+    ]
+}
+
+
+[
+    {
+        "AllowedHeaders": ["*"],
+        "AllowedMethods": ["GET"],
+        "AllowedOrigins": [
+            "http://signgo.com.gt",
+            "https://signgo.com.gt"
+        ],
+        "ExposeHeaders": ["ETag"],
+        "MaxAgeSeconds": 3000
+    }
+]
+
+ANTERIOR: 
+
+[
+    {
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "GET"
+        ],
+        "AllowedOrigins": [
+            "http://localhost:8081",
+            "http://190.242.146.67"
+        ],
+        "ExposeHeaders": [
+            "ETag"
+        ],
+        "MaxAgeSeconds": 3000
+    }
+]
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::signgo-bucket/*",
+            "Condition": {
+                "IpAddress": {
+                    "aws:SourceIp": [
+                        "192.168.10.0/24",
+                        "190.242.146.67"
+                    ]
+                }
+            }
+        }
+    ]
+}

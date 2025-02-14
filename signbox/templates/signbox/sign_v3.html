@@ -1,0 +1,386 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign</title>
+    <link rel="stylesheet" href="/static/styles/signbox/sign.css">
+    <style>
+        #pdf-container {
+            position: relative;
+            border: 1px solid #ccc;
+            width: 100%;
+            height: 80vh;
+            overflow: auto;
+        }
+        .pdf-page {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+        .pdf-page canvas {
+            width: 100%;
+            height: auto;
+        }
+        #selection-box {
+            position: absolute;
+            border: 2px dashed rgb(0, 156, 228);
+            pointer-events: none;
+        }
+        .pdf-container {
+            position: relative;
+            display: inline-block;
+            border: 1px solid black;
+        }
+
+        #pdf-render {
+            display: block;
+        }
+
+        #floating-box {
+            width: 100px;
+            height: 50px;
+            background-color: rgba(0, 200, 255, 0.322);
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: move;
+            display: none; /* Oculto inicialmente */
+        }
+
+        .d-flex {
+            display: flex;
+            justify-content: center;
+        }
+        *{
+            font-family: system-ui;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div id="liveAlertPlaceholder"></div>
+        <div class="headtext">
+            <h1>Documentos a Firmar</h1>
+        </div>
+            <div id="resultados">
+                <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+                <section class="table_outer">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-12">
+                                <div class="card border-0 shadow">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover mb-0 ">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th scope="col">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" value=""
+                                                                    id="select_all" />
+                                                            </div>
+                                                        </th>
+                                                        <th scope="col">#</th>
+                                                        <th scope="col">NOMBRE DOCUMENTO</th>
+                                                        <th scope="col">TAMAÑO DOCUMENTO</th>
+                                                        <th scope="col">ACCIÓN</th>
+                                                    </tr>
+                                                </thead>
+                                                {% for data in documentos %}
+                                                <tbody>
+                                                    <tr>
+                                                        <th scope="row">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input checkbox" type="checkbox" value=""
+                                                                    id="flexCheckDefault1" />
+                                                            </div>
+                                                        </th>
+                                                        <td>{{ forloop.counter }}</td>
+                                                        <td>{{ data.0}}</td>
+                                                        <td>{{ data.1 }}</td>
+                                                        <td>
+                                                            <button class="btn btn-dark" onclick="mostrar('{{data.0}}', '{{ carpeta }}')" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver</button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                {% endfor %}
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="d-flex justify-content-center">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal1">
+                    Siguiente
+                </button>            
+            </div>
+        </div>   
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">DemoFirma</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="d-flex">
+                    <div class="pdf-container">
+                        <canvas id="pdf-render"></canvas>
+                        <div id="floating-box"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+                    <div id="controls">
+                        <button style="width: min-content;" class="btn btn-dark" id="prev-page"><-</button>
+                        <button style="width: auto;" class="btn btn-dark" id="next-page">-></button>
+                        <button style="width: auto;" class="btn btn-dark" id="log-info">Save</button>
+                        <button style="width: min-content;" type="button" class="btn btn-dark" id="toggle-visibility">Edit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ingrese Credenciales de Firma</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Usuario</label>
+                        <input value="1088410" name="inputUsuario" placeholder="Ingrese Usuario" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" required>
+                        <!-- <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div> -->
+                      </div>
+                      <div class="mb-3">
+                        <label for="exampleInputPassword1" class="form-label">Contraseña</label>
+                        <input value="N3A6wDYB" name="inputContraseña" placeholder="Ingrese Contraeña" type="password" class="form-control" id="exampleInputPassword1" required>
+                      </div>
+                      <div class="mb-3">
+                          <label for="exampleInputPassword1" class="form-label">COdigo PIN</label>
+                          <input value="abc123**" name="inputPin" placeholder="Ingrese PIN" type="password" class="form-control" id="exampleInputPassword1" required>
+                      </div>
+                      <input type="text" value="0" id="ejeX" name="ejeX" style="display: none;">
+                      <input type="text" value="0" id="ejeY" name="ejeY" style="display: none;">
+                      <input type="text" value="0" id="npage" name="npage" style="display: none;">
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-success">Firmar</button>
+                    </div>
+                  </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+            </div>
+        </div>
+        </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+
+        function showAlert(message, type) {
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible" role="alert">'
+                + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+            document.getElementById('liveAlertPlaceholder').append(wrapper);
+
+            setTimeout(() => {
+                wrapper.querySelector('.alert').classList.add('alert-fadeout');
+                setTimeout(() => {
+                    wrapper.remove();
+                }, 10000);
+            }, 10000);
+        }
+
+        {% if messages %}
+            {% for message in messages %}
+                showAlert("{{ message }}", "danger");
+            {% endfor %}
+        {% endif %}
+
+        function setCookie(c_name,value,exdays){
+            var exdate=new Date();
+            exdate.setDate(exdate.getDate() + exdays);
+            var c_value=escape(value) + ((exdays==null) ? "" : "; expires=" + exdate.toUTCString());
+            document.cookie=c_name + "=" + c_value;
+        }
+        setCookie('bit4id-sign','sign',1)
+
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 0.7, 
+            canvas = document.getElementById('pdf-render'),
+            ctx = canvas.getContext('2d');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            
+        });
+
+        function mostrar(archivo, carpeta){
+            const pdfPath = '/media/signbox/FilesNoFirmados/' + carpeta + "/" + archivo; // Ruta al archivo PDF en el servidor
+
+            pdfjsLib.getDocument(pdfPath).promise.then(function(pdfDoc_) {
+                pdfDoc = pdfDoc_;
+                renderPage(pageNum);
+            }).catch(function(error) {
+                console.error('Error al cargar el PDF: ', error);
+            });
+        }
+
+        function renderPage(num) {
+            pageRendering = true;
+
+            pdfDoc.getPage(num).then((page) => {
+                const viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+
+                const renderTask = page.render(renderContext);
+
+                renderTask.promise.then(() => {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        function onPrevPage() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+
+        function onNextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+
+        function logInfo() {
+            const floatingBox = document.getElementById('floating-box');
+            const pdfContainer = document.querySelector('.pdf-container');
+            
+            const left = floatingBox.offsetLeft;
+            const top = floatingBox.offsetTop;
+            
+            const invertedTop = pdfContainer.offsetHeight - top - floatingBox.offsetHeight;
+            const añadido = (invertedTop * 0.5) + invertedTop
+            console.log(`Página actual: ${pageNum}`);
+            console.log(`${left}px, ${invertedTop}px`);
+            console.log(añadido)
+
+            var insertX = document.getElementById("ejeX")
+            var insertY = document.getElementById("ejeY")
+            var npagina = document.getElementById("npage")
+            insertX.value = left
+            insertY.value = añadido
+            npagina.value = pageNum
+
+        }
+
+        function toggleVisibility() {
+            const floatingBox = document.getElementById('floating-box');
+            const isHidden = window.getComputedStyle(floatingBox).display === 'none';
+        
+            if (isHidden) {
+                floatingBox.style.display = 'block';
+            } else {
+                floatingBox.style.display = 'none';
+            }
+        }
+
+        document.getElementById('prev-page').addEventListener('click', onPrevPage);
+        document.getElementById('next-page').addEventListener('click', onNextPage);
+        document.getElementById('log-info').addEventListener('click', logInfo);
+        document.getElementById('toggle-visibility').addEventListener('click', toggleVisibility);
+
+        const floatingBox = document.getElementById('floating-box');
+        const pdfContainer = document.querySelector('.pdf-container');
+
+        let isDragging = false,
+            startX, startY, initialX, initialY;
+
+        floatingBox.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialX = floatingBox.offsetLeft;
+            initialY = floatingBox.offsetTop;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                const newLeft = Math.max(0, Math.min(initialX + dx, pdfContainer.offsetWidth - floatingBox.offsetWidth));
+                const newTop = Math.max(0, Math.min(initialY + dy, pdfContainer.offsetHeight - floatingBox.offsetHeight));
+
+                floatingBox.style.left = newLeft + 'px';
+                floatingBox.style.top = newTop + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        $(document).ready(function () {
+            // Select/deselect all checkboxes
+            $('#select_all').click(function () {
+                if ($(this).is(':checked')) {
+                    $('.checkbox').prop('checked', true);
+                } else {
+                    $('.checkbox').prop('checked', false);
+                }
+            });
+
+            // If all checkboxes are selected, select the top checkbox
+            $('.checkbox').click(function () {
+                if ($('.checkbox:checked').length === $('.checkbox').length) {
+                    $('#select_all').prop('checked', true);
+                } else {
+                    $('#select_all').prop('checked', false);
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
+{% endblock %}

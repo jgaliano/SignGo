@@ -1,0 +1,256 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle Empresa</title>
+    <style>
+        .encabezado {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .contenedor {
+            padding: 4%;
+        }
+        #btn_enviar {
+            width: 200px;
+        }
+        .btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        div[name="mensaje"] {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: auto;
+        }
+        .section-contendores {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .form-check-input:checked {
+            background-color: green;
+            border-color: green;
+        }
+        .th-encabezado {
+            text-align: center;
+        }
+        .tab-button {
+            cursor: pointer;
+            padding: 10px 20px;
+            border: none;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .tab-button.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="display-5 mb-5 text-center">Detalle Empresa</h2>
+
+        <!-- Fila de opciones -->
+        <div class="d-flex justify-content-center mb-4">
+            <button class="tab-button active" onclick="showTab('editar_empresa')">Editar Empresa</button>
+            <button class="tab-button" onclick="showTab('usuarios_empresa')">Usuarios Asociados</button>
+            <button class="tab-button" onclick="showTab('licencias_empresa')">Licencias</button>
+        </div>
+
+        <div id="licencias_empresa" class="tab-content">
+            <div id="resultados">
+                <section class="table_outer">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-12">
+                                <div class="card border-0 shadow">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover mb-0 ">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Tipo Licencia</th>
+                                                        <th>Fecha Inicio</th>
+                                                        <th>Fecha Vencimiento</th>
+                                                        <th>Estado</th>
+                                                        <th>Acción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for licencia in Licencias %}
+                                                    <tr>
+                                                        <td>{{ forloop.counter }}</td>
+                                                        <td>{{ licencia.tipo }}</td>
+                                                        <td>{{ licencia.fecha_inicio }}</td>
+                                                        <td>{{ licencia.fecha_fin }}</td>
+                                                        <td>{{ licencia.activa }}</td>
+                                                        <td>
+                                                            <a href="/licencias/editar/{{ licencia.TokenAuth }}" class="btn btn-primary btn-sm px-2">
+                                                                <i class="fa-solid fa-eye">
+                                                                    <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                                </i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                {% empty %}
+                                                    <tr>
+                                                        <td colspan="8" class="text-center">No hay usuarios asociados aún.</td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Sección Editar Empresa -->
+        <div id="editar_empresa" class="tab-content active">
+            {% if messages %}
+                <div>
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form action="{% url 'editar_empresa' empresa_editar %}" method="post" class="row g-3" id="formulario">
+                {% csrf_token %}
+                <div class="col-md-6">
+                    <label for="nombre_empresa" class="form-label">Nombre:</label>
+                    <input type="text" id="nombre_empresa" name="nombre_empresa" value="{{ empresa.Nombre }}" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="nit_empresa" class="form-label">NIT:</label>
+                    <input type="text" id="nit_empresa" name="nit_empresa" value="{{ empresa.NIT }}" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="sector_empresa" class="form-label">Sector:</label>
+                    <input type="text" id="sector_empresa" name="sector_empresa" value="{{ empresa.Sector }}" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="nombre_contacto" class="form-label">Nombre Contacto:</label>
+                    <input type="email" id="nombre_contacto" name="nombre_contacto" value="{{ empresa.NombreContacto }}" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="numero_contacto" class="form-label">Número Contacto:</label>
+                    <input type="text" id="numero_contacto" name="numero_contacto" value="{{ empresa.NumeroContacto }}" required class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="email_contacto" class="form-label">Email Contacto:</label>
+                    <input type="email" id="email_contacto" name="email_contacto" value="{{ empresa.EmailContacto }}" required class="form-control">
+                </div>
+                <hr>
+                <div class="d-flex justify-content-center" style="gap: 10px;">
+                    <button type="button" id="btn_enviar" class="btn btn-primary">Guardar Cambios</button>
+                    <button type="button" onclick="regresar()" id="btn_regresar" class="btn btn-secondary">Regresar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sección Usuarios Asociados -->
+        <div id="usuarios_empresa" class="tab-content">
+            <div id="resultados">
+                <section class="table_outer">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-12">
+                                <div class="card border-0 shadow">
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover mb-0 ">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Nombre Usuario</th>
+                                                        <th>Email</th>
+                                                        <th>Activo</th>
+                                                        <th>Acción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for usuario in Usuarios %}
+                                                    <tr>
+                                                        <td>{{ forloop.counter }}</td>
+                                                        <td>{{ usuario.usuario.first_name }} {{ usuario.usuario.last_name }}   </td>
+                                                        <td>{{ usuario.usuario.email }}</td>
+                                                        <td>{{ usuario.usuario.is_active }}</td>
+                                                        <td>
+                                                            <a href="/users/editar/{{ usuario.Token }}" class="btn btn-primary btn-sm px-2">
+                                                                <i class="fa-solid fa-eye">
+                                                                    <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                                </i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                {% empty %}
+                                                    <tr>
+                                                        <td colspan="8" class="text-center">No hay usuarios asociados aún.</td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('btn_enviar').addEventListener('click', function() {
+            document.getElementById('formulario').submit();
+        });
+
+        function regresar() {
+            window.history.back();
+        }
+
+        function showTab(tabId) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Desactivar todos los botones
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Mostrar la sección seleccionada
+            document.getElementById(tabId).classList.add('active');
+
+            // Activar el botón seleccionado
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>
+{% endblock %}

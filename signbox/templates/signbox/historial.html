@@ -1,0 +1,439 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial</title>
+    <link rel="stylesheet" href="/static/assets/css/core/libs.min.css">
+    <link rel="stylesheet" href="/static/assets/css/hope-ui.min.css?v=2.0.0">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        embed{
+            width: 98%;
+            height: 98%;
+          }
+                  /* OVERLAY */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: #ffffff;
+        }
+        /* OVERLAY */
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+
+        <!-- Sección superior -->
+        <div class="d-flex justify-content-center align-items-center mb-4">
+            <h2>Historial de Documentos Firmados</h2>
+            <!-- <a class="btn btn-primary" href="/planilla/crearEmpresa">Crear Empresa</a> -->             
+        </div>
+
+            <!-- MESSAGES -->
+            {% if messages %}
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                {% for message in messages %}
+                    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header" style="color: white; background-color:{% if 'danger' in message.tags %}red{% elif 'success' in message.tags %}green{% elif 'warning' in message.tags %}orange{% else %}red{% endif %}">
+                            <strong class="me-auto">{% if 'danger' in message.tags %}Error{% endif %}</strong>
+                            <small></small>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+              
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+                    const toastList = toastElList.map(function (toastEl) {
+                        return new bootstrap.Toast(toastEl);
+                    });
+                    toastList.forEach(toast => toast.show());
+                });
+            </script>      
+        {% endif %}
+    <!-- MESSAGES -->
+
+        <!-- Filtros de búsqueda -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Filtros de Búsqueda</h5>
+                <form id="filtros-form" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="nombreEmpresa" class="form-label">Nombre de Documento</label>
+                            <input value="{{ FiltroNombre }}" type="text" class="form-control" id="nombreEmpresa" name="nombreEmpresa" placeholder="Nombre de Documento">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha de Firmado: Desde</label>
+                            <input value="{{ FiltroDesde }}" type="date" class="form-control" id="fechaRegistroDesde" name="fechaRegistroDesde">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="fechaRegistro" class="form-label">Fecha de Firmado: Hasta</label>
+                            <input value="{{ FiltroHasta }}" type="date" class="form-control" id="fechaRegistro" name="fechaRegistroHasta">
+                        </div>
+                    </div>
+                    <button type="button" onclick="filtrar()" class="btn btn-secondary activate_overlay">Buscar</button>
+                    <a href="/firma_agil/historial/" type="submit" class="btn btn-danger activate_overlay">Resetear Filtros</a>
+                    <button type="button" onclick="generarReporte()" class="btn btn-warning">Generar PDF</button>
+                    <button type="button" id="delete_docs_button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Documentos Eliminados</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resultados de la búsqueda -->
+        <div id="resultados">
+            <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+            <section class="table_outer">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-12">
+                            <div class="card border-0 shadow">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0 ">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th scope="col">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" value=""
+                                                                id="select_all" />
+                                                        </div>
+                                                    </th>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">NOMBRE ARCHIVO</th>
+                                                    <th scope="col">ESTADO FIRMADO</th>
+                                                    <th scope="col">FECHA</th>
+                                                    <th scope="col">ACCIÓN</th>
+                                                </tr>
+                                            </thead>
+                                            {% for data in ProcesosFirmado %}
+                                            <tbody>
+                                                <tr>
+                                                    <th scope="row">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input checkbox" type="checkbox" value=""
+                                                                id="flexCheckDefault1" />
+                                                        </div>
+                                                    </th>
+                                                    <td>{{ forloop.counter }}</td>
+                                                    <td>{{ data.NombreArchivo}}</td>
+                                                    <td>{{ data.EstadoFirma }}</td>
+                                                    <td>{{ data.FechaFirmado }}</td>
+                                                    <td>
+                                                        <!-- <button onclick="mostrar('{{ data.url_archivo }}')" data-bs-toggle="modal" data-bs-target="#exampleModalFile" class="btn btn-success btn-sm px-2">
+                                                            <i class="fa-solid fa-eye">
+                                                                <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </button> -->
+                                                        <button onclick="validar_link('{{ data.TokenArchivo }}')" class="btn btn-success btn-sm px-2">
+                                                            <i class="fa-solid fa-eye">
+                                                                <img src="/static/icos/visibility_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </button>
+                                                        <a href="{{ data.url_archivo }}" type="button" class="btn btn-primary btn-sm px-2 " download>
+                                                            <i class="fa-solid fa-eye">
+                                                                <img src="/static/icos/download_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </a>
+                                                        <button data-id="{{ data.id }}" type="button" class="btn btn-danger btn-sm px-2" data-bs-toggle="modal" data-bs-target="#modal_delete_doc">
+                                                            <i class="fa-solid fa-trash">
+                                                                <img src="/static/icos/delete_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </button>
+                                                        <button 
+                                                            type="button" 
+                                                            class="btn btn-dark btn-sm px-2" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#exampleModal"
+                                                            data-url="https://signgo.com.gt/firma_agil/watchDocument/{{ data.TokenArchivo }}"
+                                                            data-nombre="{{ data.NombreArchivo }}"
+                                                            data-id="{{ data.id }}"
+                                                            onclick="cargarDatosModal(this)">
+                                                            <i class="fa-solid fa-trash">
+                                                                <img src="/static/icos/share_20dp_E8EAED_FILL1_wght400_GRAD0_opsz20.svg" alt="">
+                                                            </i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="6" class="text-center">No hay documentos firmados</td>
+                                                </tr>
+                                            </tbody>
+                                            {% endfor %}
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    <!-- MODAL COMPARTIR DOCUMENTOS -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Compartir</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+                <div class="modal-body">
+                    <div id="liveAlertPlaceholder"></div>
+                    <div class="card w-100 mb-3">
+                        <div class="card-body">
+                          <h5 class="card-title">Copiar Enlace</h5>
+                          <p class="card-text">Copiar enlace de documento firmado para compartir manualmente por correo o mensaje.</p>
+                          <input class="form-control" type="text" value="" id="linkToCopy" readonly><p></p>
+                          <button onclick="copiarLink()" class="btn btn-primary">Copiar</button>
+                        </div>
+                    </div>
+                    <hr class="hr-horizontal">
+                    <!-- <div class="card w-100 mb-3">
+                        <div class="card-body">
+                          <h5 class="card-title">Enviar Documento</h5>
+                          <p class="card-text">Enviar enlace de documento firmado por medio de correo electrónico.</p>
+                          <form id="myForm" class="needs-validation" novalidate>
+                            <p class="fw-lighter fs-6">Para enviar a más de 1 direccion, separe por "<strong>,</strong>" (comas)</p>
+                            <input class="form-control" name="contactos_email" type="email" placeholder="Ingrese dirección de correo" required><p></p>
+                            <div class="invalid-feedback">Por favor, completa este campo.</div>
+                            <button id="buttonCorreo" type="button" class="btn btn-primary validateButton">Enviar</button>
+                          </form>
+                        </div>
+                    </div> -->
+                </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+            <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+            </div>
+        </div>
+        </div>
+    </div>
+    <!-- MODAL COMPARTIR DOCUMENTOS -->
+
+    <!-- MODAL DOCUMENTOS  -->
+    <div class="modal fade" id="exampleModalFile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Previsualización</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="contenedorFile" class="modal-body" style="height: 80vh;"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+          </div>
+        </div>
+    </div>
+    <!-- MODAL DOCUMENTOS -->
+
+    <!-- OVERLAY -->
+    <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+        <div class="d-flex flex-column justify-content-center align-items-center h-100">
+            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;"></div>
+            <span class="mt-2 text-light">CARGANDO...</span>
+        </div>
+    </div>
+<!-- OVERLAY -->
+
+    <!-- MODAL DE DOCUMENTOS ELIMINADOS -->
+    <div class="modal fade" id="staticBackdrop" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="staticBackdropLabel">Documentos Eliminados</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="documentos-eliminados-table">
+                    <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+                    <section class="table_outer">
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-12">
+                                    <div class="card border-0 shadow">
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover mb-0 ">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th scope="col">#</th>
+                                                            <th scope="col">NOMBRE ARCHIVO</th>
+                                                            <th scope="col">FECHA ELIMINACIÓN</th>
+                                                        </tr>
+                                                    </thead>
+                                                    {% for documento in DocumentosEliminados %}
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>{{ forloop.counter }}</td>
+                                                            <td>{{ documento.nombre_documento}}</td>
+                                                            <td>{{ documento.fecha_eliminacion }}</td>
+                                                        </tr>
+                                                        {% empty %}
+                                                        <tr>
+                                                            <td colspan="3" class="text-center">No hay documentos eliminados</td>
+                                                        </tr>
+                                                    </tbody>
+                                                    {% endfor %}
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+          </div>
+        </div>
+    </div>
+    <!-- MODAL DE DOCUMENTOS ELIMINADOS -->
+
+    <!-- MODAL CONSULTA ELIMINAR DOCUMENTO -->
+    <div class="modal fade" id="modal_delete_doc" tabindex="-1" aria-labelledby="modal_delete_docLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="modal_delete_docLabel">Confirmación de acción</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <strong>¿Está seguro de que desea eliminar este documento firmado de forma permanente?</strong>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form action="{% url 'eliminar_documento' 0 %}" id="deleteForm" method="post">
+                        {% csrf_token %}
+                        <button type="submit" id="deleteButton" class="btn btn-danger activate_overlay">Eliminar Documento</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL CONSULTA ELIMINAR DOCUMENTO -->
+
+    </div>
+    <script>
+        $(document).ready(function () {
+            // Select/deselect all checkboxes
+            $('#select_all').click(function () {
+                if ($(this).is(':checked')) {
+                    $('.checkbox').prop('checked', true);
+                } else {
+                    $('.checkbox').prop('checked', false);
+                }
+            });
+
+            // If all checkboxes are selected, select the top checkbox
+            $('.checkbox').click(function () {
+                if ($('.checkbox:checked').length === $('.checkbox').length) {
+                    $('#select_all').prop('checked', true);
+                } else {
+                    $('#select_all').prop('checked', false);
+                }
+            });
+        });
+
+
+        function copiarLink(){
+            var copiarTexto = document.getElementById('linkToCopy')
+            copiarTexto.select()
+            copiarTexto.setSelectionRange(0, 99999);
+            
+            document.execCommand("copy");
+
+            showAlert("Enlace copiado al portapeles", "success")
+        }
+
+        function enviarFile(){
+            showAlert("Correo Enviado", "success")
+        }
+
+        function showAlert(message, type) {
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = '<div class="alert alert-' + type + '" role="alert">' + message + '</div>';
+            document.getElementById('liveAlertPlaceholder').append(wrapper);
+
+            setTimeout(() => {
+                wrapper.querySelector('.alert').classList.add('alert-fadeout');
+                setTimeout(() => {
+                    wrapper.remove();
+                }, 10000);
+            }, 10000);
+        }
+
+        {% if messages %}
+            {% for message in messages %}
+                showAlert("{{ message }}", "danger");
+            {% endfor %}
+        {% endif %}
+
+        function cargarDatosModal(button){
+            const url = button.getAttribute('data-url');
+            const nombreArchivo = button.getAttribute('data-nombre');
+
+            const linkInput = document.getElementById('linkToCopy');
+            linkInput.value = url;
+
+            const tituloModal = document.getElementById('exampleModalLabel');
+            tituloModal.textContent = `Compartir: ${nombreArchivo}`;
+        }
+
+        // OVERLAY
+        document.addEventListener("DOMContentLoaded", () => {
+            if (sessionStorage.getItem("showOverlay") === "true") {
+                document.getElementById("overlay").classList.add("d-none"); // Oculta el overlay
+                sessionStorage.removeItem("showOverlay"); // Limpia el estado
+            }
+        });
+
+        document.querySelectorAll(".activate_overlay").forEach(button => {
+            button.addEventListener("click", function() {
+                var modal_confirmacion = document.getElementById('modal_delete_doc')
+                modal_confirmacion.style.display = "none"
+                document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                sessionStorage.setItem("showOverlay", "true"); // Guardar estado en sessionStorage
+            });
+        });
+        // OVERLAY
+
+    </script>
+    <script src="/static/js/signbox/historial.js"></script>
+    <script src="/static/js/signbox/historial_eliminar_archivo.js"></script>
+    <script src="/static/js/signbox/historial_enviar_correo.js"></script>
+    <script src="/static/js/signbox/historial_validar_url.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{% endblock %}

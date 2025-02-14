@@ -1,0 +1,192 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign</title>
+    <link rel="stylesheet" href="/static/styles/signbox/sign.css">
+    <style>
+        #pdf-container {
+            position: relative;
+            border: 1px solid #ccc;
+            width: 100%;
+            height: 80vh;
+            overflow: auto;
+        }
+        #pdf-render {
+            width: 100%;
+            height: 100%;
+        }
+        #selection-box {
+            position: absolute;
+            border: 2px dashed rgb(0, 156, 228);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="caja">
+        <div class="box_1_responsive">
+            <div class="box_1">
+                <h1>{{ username }}</h1>
+            </div>
+        </div>
+        <div class="statusBox">
+            <p id="statusDoc">{{ estado }}</p>
+        </div>
+        
+        <div class="container">
+            <div class="headtext">
+                <h1>Documentos a Firmar</h1>
+            </div>
+            <br>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                    Documentos
+                </div>
+                <div class="card-body">
+                    <table id="datatablesSimple" class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Documento</th>
+                                <th>Tamaño Documento</th>
+                                <th>Archivo</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr></tr>
+                        </tfoot>
+                        <tbody>
+                            {% for data in documentos %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ data.0 }}</td>
+                                <td>{{ data.1 }}</td>
+                                <td>
+                                    <button class="btn btn-success" onclick="mostrar('{{data.0}}')" data-bs-toggle="modal" data-bs-target="#exampleModal">Ver</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">DemoFirma</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="pdf-container" class="modal-body">
+                    <canvas id="pdf-render"></canvas>
+                    <div id="selection-box"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.worker.min.js';
+
+        let pdfDoc = null,
+            pageNum = 1,
+            scale = 1.5,
+            canvas = document.getElementById('pdf-render'),
+            ctx = canvas.getContext('2d'),
+            pdfContainer = document.getElementById('pdf-container'),
+            selectionBox = document.getElementById('selection-box');
+
+        function setCookie(c_name,value,exdays){
+            var exdate=new Date();
+            exdate.setDate(exdate.getDate() + exdays);
+            var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+            document.cookie=c_name + "=" + c_value;
+        }
+        setCookie('bit4id-sign','sign',1)
+
+        document.addEventListener("DOMContentLoaded", function(){
+            msg = document.getElementById('statusDoc').innerText
+
+            if (msg === "Documentos Firmados"){
+                document.getElementById('statusDoc').style.color = "green"
+            }else{
+                document.getElementById('statusDoc').style.color = "red"
+            }
+        });
+
+        function mostrar(data){
+            const url = "/media/signbox/FilesNoFirmados/" + data;
+            pdfjsLib.getDocument(url).promise.then((pdfDoc_) => {
+                pdfDoc = pdfDoc_;
+                renderPage(pageNum);
+            });
+        }
+
+        function renderPage(num) {
+            pdfDoc.getPage(num).then((page) => {
+                const viewport = page.getViewport({scale});
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                page.render(renderContext);
+            });
+        }
+
+        let isDragging = false, startX, startY;
+
+        pdfContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = pdfContainer.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+            selectionBox.style.left = `${startX}px`;
+            selectionBox.style.top = `${startY}px`;
+            selectionBox.style.width = `0px`;
+            selectionBox.style.height = `0px`;
+        });
+
+        pdfContainer.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const rect = pdfContainer.getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+                const width = currentX - startX;
+                const height = currentY - startY;
+                selectionBox.style.width = `${Math.abs(width)}px`;
+                selectionBox.style.height = `${Math.abs(height)}px`;
+                selectionBox.style.left = `${width < 0 ? currentX : startX}px`;
+                selectionBox.style.top = `${height < 0 ? currentY : startY}px`;
+            }
+        });
+        
+        pdfContainer.addEventListener('mouseup', (e) => {
+            isDragging = false;
+            const finalRect = selectionBox.getBoundingClientRect();
+            console.log('Área seleccionada:', {
+                left: finalRect.left - pdfContainer.getBoundingClientRect().left,
+                top: finalRect.top - pdfContainer.getBoundingClientRect().top,
+                width: finalRect.width,
+                height: finalRect.height
+            });
+        });
+    </script>
+</body>
+</html>
+{% endblock %}

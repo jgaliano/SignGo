@@ -1,0 +1,59 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Empresa</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Sección de creación de empresa -->
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Crear Usuario</h2>
+                <form id="crear-empresa-form" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nombreUsuario" class="form-label">Nombre de Usuario</label>
+                            <input name="nombreUsuario" type="email" class="form-control" id="nombreUsuario" placeholder="Nombre de Usuario" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input name="email" type="email" class="form-control" id="email" placeholder="Nombre de Usuario" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="psw1" class="form-label">Contraseña</label>
+                            <input name="psw1" type="password" class="form-control" id="psw1" placeholder="Nombre de Usuario" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="psw2" class="form-label">Confirmar Contraseña</label>
+                            <input name="psw2" type="password" class="form-control" id="psw2" placeholder="Nombre de Usuario" required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">Guardar Usuario</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelar()">Regresar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function cancelar() {
+            window.history.back(); // Regresar a la página anterior
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{% endblock %}

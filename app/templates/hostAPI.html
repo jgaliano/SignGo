@@ -1,0 +1,377 @@
+{% extends 'dashboard/index.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HostAPI</title>
+    <style>
+        .ajustar{
+            width: 50%;
+        }
+        .alertSettings{
+            
+        }
+
+                /* OVERLAY */
+                .overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: none;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                }
+        
+                .spinner-border {
+                    width: 3rem;
+                    height: 3rem;
+                    color: #ffffff;
+                }
+                /* OVERLAY */
+    </style>
+</head>
+<body>
+
+        <!-- MESSAGES -->
+        {% if messages %}
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                {% for message in messages %}
+                    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header" style="color: white; background-color:{% if 'danger' in message.tags %}red{% elif 'success' in message.tags %}green{% elif 'warning' in message.tags %}orange{% else %}red{% endif %}">
+                            <strong class="me-auto">{% if 'danger' in message.tags %}Error{%else%}Éxito{% endif %}</strong>
+                            <small></small>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+              
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+                    const toastList = toastElList.map(function (toastEl) {
+                        return new bootstrap.Toast(toastEl);
+                    });
+                    toastList.forEach(toast => toast.show());
+                });
+            </script>      
+        {% endif %}
+    <!-- MESSAGES -->
+
+        <!-- OVERLAY -->
+        <div id="overlay" class="d-none position-fixed w-100 h-100 top-0 start-0 bg-dark bg-opacity-75" style="z-index: 1050;">
+            <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;"></div>
+                <span class="mt-2 text-light">CARGANDO...</span>
+            </div>
+        </div>
+    <!-- OVERLAY -->
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-end">
+            <div id="liveAlertPlaceholder" style="width: 50%;"></div>
+        </div>
+        <h2 class="display-5 mb-5 text-center">Direcciones Host</h2>
+    </div>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        <div class="container mt-5">
+            <div class="row">
+                <div class="col">
+                    <div class="d-flex justify-content-start">
+                        <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">API SignBox</h3>
+                    </div>
+                    <div class="input-group mb-3">
+                        <select name="sigbboxSelect" id="selectApiSignbox" class="form-select" aria-label="Default select example"></select>
+                        <input name="signboxInput" value="{{ SignboxIP.ip }}" type="text" class="form-control" placeholder="Host" aria-label="Username">
+                        <span class="input-group-text">/api/sign/request</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="d-flex justify-content-start">
+                        <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">API One-Shot</h3>
+                    </div>
+                    <div class="input-group mb-3">
+                        <select name="oneshotSelect" id="selectApiOneshot" class="form-select" aria-label="Default select example"></select>
+                        <input name="oneshotInput" value="{{ OneshotIP.ip }}" type="text" class="form-control" placeholder="Host" aria-label="Username">
+                        <span class="input-group-text">/api/v1/request</span>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col">
+                    <div class="d-flex justify-content-start">
+                        <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">API VOL</h3>
+                    </div>
+                    <div class="input-group mb-3">
+                        <select name="volSelect" id="selectApiVol" class="form-select" aria-label="Default select example"></select>
+                        <input name="volInput" value="{{ VolIP.ip }}" type="text" class="form-control" placeholder="Host" aria-label="Username">
+                        <span class="input-group-text">/api/documents</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="d-flex justify-content-start">
+                        <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">Webhook Signbox</h3>
+                    </div>
+                    <div class="input-group mb-3">
+                        <select name="webhookSelect" id="selectWebhook" class="form-select" aria-label="Default select example"></select>
+                        <input name="webhookInput" value="{{ dataWebhook.ip }}" type="text" class="form-control" placeholder="Host" aria-label="Username" style="flex: 0 0 55%;">
+                        <span class="input-group-text">/webhook</span>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col">
+                    <div class="d-flex justify-content-start">
+                        <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">TOKEN ONE-SHOT</h3>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input name="token_value" id="token_value" value="{{ token_oneshot.token }}" type="text" class="form-control" placeholder="" aria-label="" style="flex: 0 0 55%;">
+                        <!-- <span class="input-group-text">/api/v1/token</span> -->
+                        <button type="button" onclick="get_token()" class="btn btn-secondary">Gestionar Tokens</button>
+                    </div>
+                </div>
+                <div class="col">
+
+                </div>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-center">
+                <button type="submit" class="btn btn-dark validateButton">Guardar</button>
+            </div>
+        </div>
+    </form>
+
+
+        <!-- MODAL DE TOKENS -->
+        <div class="modal fade" id="staticBackdrop" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="staticBackdropLabel">Gestión de Tokens</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <form action="{% url 'crear_token' %}" method="post" id="formulario_token">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col">
+                                    <div class="d-flex justify-content-start">
+                                        <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">USERNAME</h3>
+                                    </div>
+                                    <div class="">
+                                        <input required name="username_value" id="token_value" value="" type="text" class="form-control" placeholder="" aria-label="" style="flex: 0 0 55%;">
+                                        <div class="invalid-feedback">Por favor, completa este campo.</div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="d-flex justify-content-start">
+                                        <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">PASSWORD</h3>
+                                    </div>
+                                    <div class="">
+                                        <input required name="psw_value" id="token_value" value="" type="password" class="form-control" placeholder="" aria-label="" style="flex: 0 0 55%;">
+                                        <div class="invalid-feedback">Por favor, completa este campo.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="d-flex justify-content-start">
+                                        <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">PIN</h3>
+                                    </div>
+                                    <div class="">
+                                        <input required name="pin_value" id="token_value" value="" type="password" class="form-control" placeholder="" aria-label="" style="flex: 0 0 55%;">
+                                        <div class="invalid-feedback">Por favor, completa este campo.</div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="d-flex justify-content-start">
+                                        <h3 class="fs-6 mb-2 text-secondary text-center text-uppercase">ENV</h3>
+                                    </div>
+                                    <div class="">
+                                        <input required name="env_value" id="token_value" value="" type="text" class="form-control" placeholder="" aria-label="" style="flex: 0 0 55%;">
+                                        <div class="invalid-feedback">Por favor, completa este campo.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-center">
+                                <button type="button" onclick="CrearToken()" class="btn btn-dark">Generar Token</button>
+                            </div>
+                        </form>
+                    </div>
+                    <hr>
+                    <div>
+                        <p id="data_api"></p>
+                    </div>
+
+                    <!-- <div id="documentos-eliminados-table">
+                        <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+                        <section class="table_outer">
+                            <div class="container">
+                                <div class="row justify-content-center">
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow">
+                                            <div class="card-body">
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover mb-0 ">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th scope="col">TOKEN</th>
+                                                                <th scope="col">USERNAME</th>
+                                                                <th scope="col">ENV</th>
+                                                            </tr>
+                                                        </thead>
+                                                        {% for documento in DocumentosEliminados %}
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>{{ documento.nombre_documento}}</td>
+                                                                <td>{{ documento.fecha_eliminacion }}</td>
+                                                                <td>{{ documento.fecha_eliminacion }}</td>
+                                                            </tr>
+                                                            {% empty %}
+                                                            <tr>
+                                                                <td colspan="4" class="text-center">No hay tokens disponibles aún</td>
+                                                            </tr>
+                                                        </tbody>
+                                                        {% endfor %}
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div> -->
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+        <!-- MODAL DE TOKENS -->
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            var signbox = "{{ SignboxIP.protocol }}"
+            var oneshot = "{{ OneshotIP.protocol }}"
+            var vol = "{{ VolIP.protocol }}"
+            var webhook = "{{ dataWebhook.protocol }}"
+
+            selectSignbox = document.getElementById('selectApiSignbox')
+            selectOneshot = document.getElementById('selectApiOneshot')
+            selectVol = document.getElementById('selectApiVol')
+            selectWebhook = document.getElementById('selectWebhook')
+            
+            optionSignbox1 = document.createElement('option')
+            optionSignbox1.value = "0"
+            optionSignbox1.text = "http"
+
+            optionSignbox2 = document.createElement('option')
+            optionSignbox2.value = "1"
+            optionSignbox2.text = "https"
+
+            optionOneshot1 = document.createElement('option')
+            optionOneshot1.value = "0"
+            optionOneshot1.text = "http"
+
+            optionOneshot2 = document.createElement('option')
+            optionOneshot2.value = "1"
+            optionOneshot2.text = "https"
+
+            optionVol1 = document.createElement("option")
+            optionVol1.value = "0"
+            optionVol1.text = "http"
+
+            optionVol2 = document.createElement("option")
+            optionVol2.value = "1"
+            optionVol2.text = "https"
+
+            optionWebhook1 = document.createElement("option")
+            optionWebhook1.value = "0"
+            optionWebhook1.text = "http"
+
+            optionWebhook2 = document.createElement("option")
+            optionWebhook2.value = "1"
+            optionWebhook2.text = "https"
+
+
+            selectSignbox.add(optionSignbox1)
+            selectSignbox.add(optionSignbox2)
+
+            selectOneshot.add(optionOneshot1)
+            selectOneshot.add(optionOneshot2)
+
+            selectVol.add(optionVol1)
+            selectVol.add(optionVol2)
+
+            selectWebhook.add(optionWebhook1)
+            selectWebhook.add(optionWebhook2)
+
+            if (signbox == "0"){
+                selectSignbox.value = "0"
+            }else{
+                selectSignbox.value = "1"
+            }
+
+            if (oneshot == "0"){
+                selectOneshot.value = "0"
+            }else{
+                selectOneshot.value = "1"
+            }
+
+            if (vol == "0"){
+                selectVol.value = "0"
+            }else{
+                selectVol.value = "1"
+            }
+
+            if (webhook == "0"){
+                selectWebhook.value = "0"
+            }else{
+                selectWebhook.value = "1"
+            }
+
+        })
+
+        function CrearToken(){
+
+            const form = document.getElementById("formulario_token");
+            
+            if (form.checkValidity()) {
+                var modalElement = document.getElementById('staticBackdrop');
+                var modalInstance = bootstrap.Modal.getInstance(modalElement);
+                modalInstance.hide();
+
+                document.getElementById("overlay").classList.remove("d-none"); // Mostrar overlay
+                sessionStorage.setItem("showOverlay", "true");
+
+                const formulario = document.getElementById('formulario_token')
+                formulario.submit()
+            }else {
+                form.classList.add("was-validated");
+            }            
+        }
+    </script>
+    <script src="/static/js/app/app_validate_tokens.js"></script>
+</body>
+</html>
+{% endblock %}
